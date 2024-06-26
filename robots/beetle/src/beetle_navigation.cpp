@@ -411,25 +411,28 @@ void BeetleNavigator::setTargetReleasePoint()
 {
   setXyControlMode(POS_CONTROL_MODE);
   tf::Vector3 pos_cog = estimator_->getPos(Frame::COG, estimate_mode_);
+  tf::Vector3 current_rpy = estimator_->getEuler(Frame::COG, estimate_mode_);
+  // tf::Vector3 current_angular_vel = estimator_->getAngularVel(Frame::COG, esimate_mode_);
   tf::Vector3 release_pos;
 
   //TODO begin
   /*Define target position for releasing motion from current cog state and kinematic information.*/
-  float current_x = getTargetPos().x();
-  float current_y = getTargetPos().y();
-  float current_z = getTargetPos().z();
+  float current_x = pos_cog.x();
+  float current_y = pos_cog.y();
+  float current_z = pos_cog.z();
   float length_cog_to_palm = 0.286;
-  float current_pitch = getTargetRPY().y();
-  float current_yaw = getTargetRPY().z();
+  float current_pitch = current_rpy.y();
+  // float current_pitch_vel = current_angular_vel.y();
+  float current_yaw = current_rpy.z();
   if(-1.57 < current_pitch < -0.5 || 0.5 < current_pitch < 1.57){
-    ROS_INFO_STREAM("<!----------Not Stable!!!----------!>"); 
+  // if(float abs(current_pitch_vel) < 0.1){
+    ROS_INFO_ONCE("\n \n ===================== \n Not Stable !!! \n ====================== \n"); 
   }
   else{
-    release_pos.x() = (current_x - length_cog_to_palm * cos(current_pitch) * cos(current_yaw));
-    release_pos.y() = (current_y - length_cog_to_palm * cos(current_pitch) * sin(current_yaw));
-    release_pos.z() = (current_z + length_cog_to_palm * sin(current_pitch));
+    release_pos.setX(current_x - (length_cog_to_palm - length_cog_to_palm * cos(current_pitch)) * cos(current_yaw));
+    release_pos.setY(current_y - (length_cog_to_palm - length_cog_to_palm * cos(current_pitch)) * sin(current_yaw));
+    release_pos.setZ(current_z + length_cog_to_palm * sin(current_pitch));
   }
-  //should pub pitch information...?
   //TODO end
 
   setTargetPosX(release_pos.x());
