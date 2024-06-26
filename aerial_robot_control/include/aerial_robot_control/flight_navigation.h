@@ -376,7 +376,7 @@ namespace aerial_robot_navigation
         }
     }
 
-    void motorArming()
+    virtual void motorArming()
     {
       /* z(altitude) */
       /* check whether there is the fusion for the altitude */
