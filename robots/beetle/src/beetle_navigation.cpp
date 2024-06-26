@@ -23,6 +23,7 @@ void BeetleNavigator::initialize(ros::NodeHandle nh, ros::NodeHandle nhp,
   beetle_robot_model_ = boost::dynamic_pointer_cast<BeetleRobotModel>(robot_model);
   int max_modules_num = beetle_robot_model_->getMaxModuleNum();
   assembly_nav_sub_ = nh_.subscribe("/assembly/uav/nav", 1, &BeetleNavigator::assemblyNavCallback, this);
+  perching_flag_sub_ = nh_.subscribe("/perching_flag", 1, &BeetleNavigator::perchingFlagCallback, this);
   assembly_target_rot_sub_ = nh_.subscribe("/assembly/final_target_baselink_rot", 1, &BeetleNavigator::setFinalTargetBaselinkRotCallback, this);
   for(int i = 0; i < max_modules_num; i++){
     std::string module_name  = string("/beetle") + std::to_string(i+1);
@@ -299,6 +300,11 @@ void BeetleNavigator::assemblyFlagCallback(const diagnostic_msgs::KeyValue & msg
   beetle_robot_model_->setAssemblyFlag(module_id,assembly_flag);
 }
 
+void BeetleNavigator::perchingFlagCallback(const std_msgs::Bool & msg)
+{
+  perching_flag_ = msg.data;
+}
+
 void BeetleNavigator::update()
 {
   rotateContactPointFrame();
@@ -395,6 +401,49 @@ void BeetleNavigator::rosParamInit()
   GimbalrotorNavigator::rosParamInit();
 }
 
+void BeetleNavigator::motorArming()
+{
+  BaseNavigator::motorArming();
+  if(perching_flag_) setTargetReleasePoint();
+}
+
+void BeetleNavigator::setTargetReleasePoint()
+{
+  setXyControlMode(POS_CONTROL_MODE);
+  tf::Vector3 pos_cog = estimator_->getPos(Frame::COG, estimate_mode_);
+  tf::Vector3 release_pos;
+
+  //TODO begin
+  /*Define target position for releasing motion from current cog state and kinematic information.*/
+  float current_x = getTargetPos().x();
+  float current_y = getTargetPos().y();
+  float current_z = getTargetPos().z();
+  float length_cog_to_palm = 0.286;
+  float current_pitch = getTargetRPY().y();
+  float current_yaw = getTargetRPY().z();
+  if(-1.57 < current_pitch < -0.5 || 0.5 < current_pitch < 1.57){
+    ROS_INFO_STREAM("<!----------Not Stable!!!----------!>"); 
+  }
+  else{
+    release_pos.x() = (current_x - length_cog_to_palm * cos(current_pitch) * cos(current_yaw));
+    release_pos.y() = (current_y - length_cog_to_palm * cos(current_pitch) * sin(current_yaw));
+    release_pos.z() = (current_z + length_cog_to_palm * sin(current_pitch));
+  }
+  //should pub pitch information...?
+  //TODO end
+
+  setTargetPosX(release_pos.x());
+  setTargetPosY(release_pos.y());
+  setTargetPosZ(release_pos.z());
+
+  // set the velocty to zero
+  setTargetVelX(0);
+  setTargetVelY(0);
+
+  // set the acceleration to zero
+  setTargetAccX(0);
+  setTargetAccY(0);
+}
 
 /* plugin registration */
 #include <pluginlib/class_list_macros.h>

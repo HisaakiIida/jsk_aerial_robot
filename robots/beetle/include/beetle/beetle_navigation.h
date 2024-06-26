@@ -5,6 +5,7 @@
 #include <gimbalrotor/gimbalrotor_navigation.h>
 #include <beetle/model/beetle_robot_model.h>
 #include <diagnostic_msgs/KeyValue.h>
+#include <std_msgs/Bool.h>
 
 namespace aerial_robot_navigation
 {
@@ -35,10 +36,13 @@ namespace aerial_robot_navigation
     inline void setTargetPosCand( tf::Vector3 value){  target_pos_candidate_ = value ;}
     inline tf::Vector3 getTargetPosCand() {return target_pos_candidate_;}
 
+    void setTargetReleasePoint();
+
   protected:
     void rosParamInit() override;
+
     void setFinalTargetBaselinkRotCallback(const spinal::DesireCoordConstPtr & msg) override;
-    
+    void motorArming() override;
 
   private:
     tf::Vector3 target_pos_candidate_;
@@ -47,14 +51,17 @@ namespace aerial_robot_navigation
     ros::NodeHandle nhp_;
     ros::Subscriber assembly_nav_sub_;
     ros::Subscriber assembly_target_rot_sub_;
+    ros::Subscriber perching_flag_sub_;
 
     double max_target_roll_pitch_rate_;
 
     bool roll_pitch_control_flag_;
-    bool pre_assembled_ ; 
+    bool pre_assembled_ ;
+    bool perching_flag_ ;
 
     void naviCallback(const aerial_robot_msgs::FlightNavConstPtr & msg) override;
     void assemblyNavCallback(const aerial_robot_msgs::FlightNavConstPtr & msg);
+    void perchingFlagCallback(const std_msgs::Bool & msg);
     void joyStickControl(const sensor_msgs::JoyConstPtr & joy_msg) override; 
     void rotateContactPointFrame();
     tf2_ros::TransformBroadcaster br_;

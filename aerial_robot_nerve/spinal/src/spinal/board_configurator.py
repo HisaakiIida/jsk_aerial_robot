@@ -28,9 +28,13 @@ class BoardConfigurator(Plugin):
         except socket.error:
             raise ROSTopicIOException("Unable to communicate with master!")
         board_info_srvs = [srv[0] for srv in srvs if '/get_board_info' in srv[0]]
+        print(board_info_srvs)
 
         # choose the first robot name
-        robot_ns = board_info_srvs[0].split('/get_board_info')[0]
+
+        #TODO: bad implementation
+        # robot_ns = board_info_srvs[0].split('/get_board_info')[0]
+        robot_ns = ''        
 
         self.get_board_info_client_ = rospy.ServiceProxy(robot_ns + '/get_board_info', GetBoardInfo)
         self.set_board_config_client_ = rospy.ServiceProxy(robot_ns + '/set_board_config', SetBoardConfig)
