@@ -37,6 +37,7 @@ namespace aerial_robot_navigation
     inline tf::Vector3 getTargetPosCand() {return target_pos_candidate_;}
 
     void setTargetReleasePoint();
+    void checkPerchingFlagForRelease();
 
   protected:
     void rosParamInit() override;

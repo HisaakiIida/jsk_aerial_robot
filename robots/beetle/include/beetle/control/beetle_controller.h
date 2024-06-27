@@ -5,6 +5,7 @@
 #include <beetle/TaggedWrench.h>
 #include <gimbalrotor/control/gimbalrotor_controller.h>
 #include <beetle/sensor/imu.h>
+#include <std_msgs/Bool.h>
 
 namespace aerial_robot_control
 {
@@ -39,6 +40,7 @@ namespace aerial_robot_control
     ros::Publisher internal_wrench_pub_;
     ros::Publisher wrench_comp_pid_pub_;
     map<string, ros::Subscriber> ff_inter_wrench_subs_;
+    ros::Subscriber perching_flag_;
 
     aerial_robot_msgs::PoseControlPid wrench_pid_msg_;
 
