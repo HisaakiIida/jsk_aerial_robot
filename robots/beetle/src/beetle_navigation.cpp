@@ -424,15 +424,15 @@ void BeetleNavigator::setTargetReleasePoint()
   float current_pitch = current_rpy.y();
   // float current_pitch_vel = current_angular_vel.y();
   float current_yaw = current_rpy.z();
-  if(-1.57 < current_pitch < -0.5 || 0.5 < current_pitch < 1.57){
-  // if(float abs(current_pitch_vel) < 0.1){
-    ROS_INFO_ONCE("\n \n ===================== \n Not Stable !!! \n ====================== \n"); 
-  }
-  else{
-    release_pos.setX(current_x - (length_cog_to_palm - length_cog_to_palm * cos(current_pitch)) * cos(current_yaw));
-    release_pos.setY(current_y - (length_cog_to_palm - length_cog_to_palm * cos(current_pitch)) * sin(current_yaw));
-    release_pos.setZ(current_z + length_cog_to_palm * sin(current_pitch));
-  }
+  // if(-1.57 < current_pitch < -0.5 || 0.5 < current_pitch < 1.57){
+  // // if(float abs(current_pitch_vel) < 0.1){
+  //   ROS_INFO_ONCE("\n \n ===================== \n Not Stable !!! \n ====================== \n"); 
+  // }
+  // else{
+  release_pos.setX(current_x - (length_cog_to_palm - length_cog_to_palm * cos(current_pitch)) * cos(current_yaw));
+  release_pos.setY(current_y - (length_cog_to_palm - length_cog_to_palm * cos(current_pitch)) * sin(current_yaw));
+  release_pos.setZ(current_z - length_cog_to_palm * sin(current_pitch));
+  // }
   //TODO end
 
   setTargetPosX(release_pos.x());
