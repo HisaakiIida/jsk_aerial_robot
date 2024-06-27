@@ -312,6 +312,7 @@ void BeetleNavigator::update()
   convertTargetPosFromCoG2CoM();
   GimbalrotorNavigator::update();
   beetle_robot_model_->setControlFlag((getNaviState() == HOVER_STATE || getNaviState() == TAKEOFF_STATE || getNaviState() == LAND_STATE) ? true : false);
+  checkPerchingFlagForRelease();
 }
 
 void BeetleNavigator::rotateContactPointFrame()
@@ -424,8 +425,7 @@ void BeetleNavigator::setTargetReleasePoint()
   float current_pitch = current_rpy.y();
   // float current_pitch_vel = current_angular_vel.y();
   float current_yaw = current_rpy.z();
-  // if(-1.57 < current_pitch < -0.5 || 0.5 < current_pitch < 1.57){
-  // // if(float abs(current_pitch_vel) < 0.1){
+  // if(float abs(current_pitch_vel) < 0.5){
   //   ROS_INFO_ONCE("\n \n ===================== \n Not Stable !!! \n ====================== \n"); 
   // }
   // else{
@@ -446,6 +446,15 @@ void BeetleNavigator::setTargetReleasePoint()
   // set the acceleration to zero
   setTargetAccX(0);
   setTargetAccY(0);
+}
+
+void BeetleNavigator::checkPerchingFlagForRelease()
+{
+  tf::Vector3 pos_cog = estimator_->getPos(Frame::COG, estimate_mode_);
+  if(pos_cog.z() < getTargetPos().z())
+    {
+      perching_flag_ = false;
+    }
 }
 
 /* plugin registration */

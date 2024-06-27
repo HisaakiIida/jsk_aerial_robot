@@ -1,6 +1,8 @@
 #include <beetle/control/beetle_controller.h>
+#include <std_msgs/Bool.h>
 
 using namespace std;
+
 
 namespace aerial_robot_control
 {
@@ -83,6 +85,7 @@ namespace aerial_robot_control
 
   void BeetleController::controlCore()
   {
+
     std::map<int, bool> assembly_flag = beetle_robot_model_->getAssemblyFlags();
     int max_modules_num = beetle_robot_model_->getMaxModuleNum();
     int module_state = beetle_robot_model_-> getModuleState();
@@ -224,7 +227,17 @@ namespace aerial_robot_control
       pid_controllers_.at(PITCH).setICompTerm(0.0);
       pid_controllers_.at(YAW).setICompTerm(0.0);
     }
-      
+    
+    if(perching_flag_)
+      {
+        //set err_i_ 0
+	pid_controllers_.at(X).setErrI(0.0);
+	pid_controllers_.at(Y).setErrI(0.0);
+	pid_controllers_.at(ROLL).setErrI(0.0);
+	pid_controllers_.at(PITCH).setErrI(0.0);
+	pid_controllers_.at(YAW).setErrI(0.0);
+      }
+    
     GimbalrotorController::controlCore();
     pre_module_state_ = module_state;
     
