@@ -287,7 +287,7 @@ void BeetleNavigator::assemblyNavCallback(const aerial_robot_msgs::FlightNavCons
   if(beetle_robot_model_->getModuleState() != SEPARATED) BeetleNavigator::naviCallback(msg);
 }
 
-void BeetleNavigator::setFinalTargetBaselinkRotCallback(const spinal::DesireCoordConstPtr & msg)
+void BeetleNavigator::setAssemblyFinalTargetBaselinkRotCallback(const spinal::DesireCoordConstPtr & msg)
 {
   if(beetle_robot_model_->getModuleState() != SEPARATED) GimbalrotorNavigator::setFinalTargetBaselinkRotCallback(msg);
 }
