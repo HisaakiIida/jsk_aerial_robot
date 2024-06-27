@@ -42,7 +42,7 @@ namespace aerial_robot_navigation
   protected:
     void rosParamInit() override;
 
-    void setFinalTargetBaselinkRotCallback(const spinal::DesireCoordConstPtr & msg) override;
+    // void setFinalTargetBaselinkRotCallback(const spinal::DesireCoordConstPtr & msg) override;
     void motorArming() override;
 
   private:
