@@ -2,6 +2,7 @@
 
 #pragma once
 #include <beetle/model/beetle_robot_model.h>
+#include <beetle/beetle_navigation.h>
 #include <beetle/TaggedWrench.h>
 #include <gimbalrotor/control/gimbalrotor_controller.h>
 #include <beetle/sensor/imu.h>
@@ -33,6 +34,7 @@ namespace aerial_robot_control
                     ) override;
   private:
     boost::shared_ptr<BeetleRobotModel> beetle_robot_model_;
+    boost::shared_ptr<aerial_robot_navigation::BeetleNavigator> beetle_navigator_;
     
     ros::Publisher external_wrench_compensation_pub_;
     ros::Publisher tagged_external_wrench_pub_;
@@ -40,7 +42,7 @@ namespace aerial_robot_control
     ros::Publisher internal_wrench_pub_;
     ros::Publisher wrench_comp_pid_pub_;
     map<string, ros::Subscriber> ff_inter_wrench_subs_;
-    ros::Subscriber perching_flag_;
+    // ros::Subscriber perching_flag_;
 
     aerial_robot_msgs::PoseControlPid wrench_pid_msg_;
 

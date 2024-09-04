@@ -47,6 +47,7 @@ namespace aerial_robot_control
     wrench_pid_msg_.yaw.d_term.resize(1);
 
     beetle_robot_model_ = boost::dynamic_pointer_cast<BeetleRobotModel>(robot_model);
+    beetle_navigator_ = boost::dynamic_pointer_cast<aerial_robot_navigation::BeetleNavigator>(navigator);
     external_wrench_lower_limit_ = Eigen::VectorXd::Zero(6);
     external_wrench_upper_limit_ = Eigen::VectorXd::Zero(6);
     rosParamInit();
@@ -89,6 +90,7 @@ namespace aerial_robot_control
     std::map<int, bool> assembly_flag = beetle_robot_model_->getAssemblyFlags();
     int max_modules_num = beetle_robot_model_->getMaxModuleNum();
     int module_state = beetle_robot_model_-> getModuleState();
+    bool perching_flag = beetle_navigator_->getPerchingFlag();
     bool comp_update_flag = false;
     double comp_update_interval = 1  / comp_term_update_freq_;
     if(beetle_robot_model_->getControlFlag() &&
@@ -228,7 +230,7 @@ namespace aerial_robot_control
       pid_controllers_.at(YAW).setICompTerm(0.0);
     }
     
-    if(perching_flag_)
+    if(perching_flag)
       {
         //set err_i_ 0
 	pid_controllers_.at(X).setErrI(0.0);

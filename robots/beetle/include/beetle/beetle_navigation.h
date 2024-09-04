@@ -35,6 +35,7 @@ namespace aerial_robot_navigation
     inline void setTargetPosCandZ( float value){  target_pos_candidate_.setZ(value);}
     inline void setTargetPosCand( tf::Vector3 value){  target_pos_candidate_ = value ;}
     inline tf::Vector3 getTargetPosCand() {return target_pos_candidate_;}
+    inline bool getPerchingFlag() {return perching_flag_;}
 
     void setTargetReleasePoint();
     void checkPerchingFlagForRelease();
