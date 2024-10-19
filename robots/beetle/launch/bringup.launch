@@ -68,7 +68,6 @@
   <include file="$(find aerial_robot_model)/launch/aerial_robot_model.launch" >
     <arg name="headless" value="$(arg headless)" />
     <arg name="robot_model" value="$(find beetle)/robots/beetle_hand.$(arg description_mode).xacro"/>
-    <!-- <arg name="robot_model" value="$(find beetle)/beetle_hand/urdf/beetle_hand.$(arg description_mode).xacro"/> -->
     <arg name="robot_ns" value="$(arg robot_ns)" />
     <arg name="rviz_config" value="$(arg config_dir)/rviz_config" />
     <arg name="rviz_init_pose" value="$(arg config_dir)/RvizInit.yaml" />
