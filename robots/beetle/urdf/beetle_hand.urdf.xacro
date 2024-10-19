@@ -87,10 +87,15 @@
     </xacro:macro>
 
     ## dummy rotor arms
-    <xacro:dummy_rotor_arm id = "${child1}" x = "0.12427" y="0.12427" z = "0.11425" yaw = "${pi/4.0}"/>
-    <xacro:dummy_rotor_arm id = "${child2}" x = "-0.12427" y="0.12427" z = "0.11425" yaw = "${pi*3.0/4.0}"/>
-    <xacro:dummy_rotor_arm id = "${child3}" x = "-0.12427" y="-0.12427" z = "0.11425" yaw = "${pi*5.0/4.0}"/>
-    <xacro:dummy_rotor_arm id = "${child4}" x = "0.12427" y="-0.12427" z = "0.11425" yaw = "${pi*7.0/4.0}"/>
+    <!-- <xacro:dummy_rotor_arm id = "${child1}" x = "0.12427" y="0.12427" z = "0.11425" yaw = "${pi/4.0}"/> -->
+    <!-- <xacro:dummy_rotor_arm id = "${child2}" x = "-0.12427" y="0.12427" z = "0.11425" yaw = "${pi*3.0/4.0}"/> -->
+    <!-- <xacro:dummy_rotor_arm id = "${child3}" x = "-0.12427" y="-0.12427" z = "0.11425" yaw = "${pi*5.0/4.0}"/> -->
+    <!-- <xacro:dummy_rotor_arm id = "${child4}" x = "0.12427" y="-0.12427" z = "0.11425" yaw = "${pi*7.0/4.0}"/> -->
+
+    <xacro:dummy_rotor_arm id = "${child1}" x = "0.13427" y="0.13427" z = "0.11425" yaw = "${pi/4.0}"/>
+    <xacro:dummy_rotor_arm id = "${child2}" x = "-0.13427" y="0.13427" z = "0.11425" yaw = "${pi*3.0/4.0}"/>
+    <xacro:dummy_rotor_arm id = "${child3}" x = "-0.13427" y="-0.13427" z = "0.11425" yaw = "${pi*5.0/4.0}"/>
+    <xacro:dummy_rotor_arm id = "${child4}" x = "0.13427" y="-0.13427" z = "0.11425" yaw = "${pi*7.0/4.0}"/>
 
     ## dummy link for the contact point coordinate
       <link name="contact_point">
