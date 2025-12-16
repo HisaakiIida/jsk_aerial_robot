@@ -2,8 +2,8 @@
 <robot
     xmlns:xacro="http://www.ros.org/wiki/xacro" name="gimbalrotor" >
 
-  <xacro:include filename="$(find gimbalrotor)/urdf/gryllo/gimbalrotor.urdf.xacro" />
-  <xacro:include filename="$(find gimbalrotor)/urdf/gryllo/common.xacro" />
+  <xacro:include filename="$(find gryllo)/urdf/gryllo/gimbalrotor.urdf.xacro" />
+  <xacro:include filename="$(find gryllo)/urdf/gryllo/common.xacro" />
 
   <xacro:gimbalrotor_center_link child1="1" child2="2" child3="3" child4="4"/>
   <xacro:gimbalrotor_thrust_link self="1" rotor_direction="1"/>

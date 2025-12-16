@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <robot
     xmlns:xacro="http://www.ros.org/wiki/xacro" name="gimbalrotor" >
-  <xacro:arg name="robot_name" default="gimbalrotor" />
+  <xacro:arg name="robot_name" default="gryllo" />
 
-  <xacro:include filename="$(find gimbalrotor)/robots/gryllo/gimbalrotor.urdf.xacro" />
+  <xacro:include filename="$(find gryllo)/robots/gryllo/gryllo.urdf.xacro" />
 
   <!-- gazebo plugin for default controller and sensors -->
   <xacro:include filename="$(find aerial_robot_simulation)/xacro/spinal.gazebo.xacro" />
