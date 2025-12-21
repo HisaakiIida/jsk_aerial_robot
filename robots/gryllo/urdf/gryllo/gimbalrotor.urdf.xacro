@@ -24,17 +24,17 @@
     ## link
     <link name="base_link">
       <inertial>
-        <origin xyz="0.0267 0.0111 0.0000
+        <origin xyz="0.1981 0.0000 0.1105
 " rpy="0 0 0"/>
-        <mass value="2.0000"/>
+        <mass value="1.99364"/>
         <inertia
             ixx="0.03038" iyy="0.25319" izz="0.24155"
-            ixy="0.00001" ixz="0.00031" iyz="0.00000"/>
+            ixy="0.00001" ixz="0.03528" iyz="0.00001"/>
       </inertial>
       <visual>
         <origin xyz="0 0 0" rpy="0 0 0"/>
         <geometry>
-          <mesh filename="package://gimbalrotor/urdf/gryllo/mesh/bodylink_45d.STL"/>
+          <mesh filename="package://gryllo/urdf/gryllo/mesh/bodylink_45d.STL"/>
         </geometry>
       </visual>
       <collision>
@@ -204,7 +204,7 @@
       <visual>
         <origin xyz="0 0 0" rpy="0 0 0"/>
         <geometry>
-          <mesh filename="package://gimbalrotor/urdf/gryllo/mesh/rotor_unit_leftside.STL"/>
+          <mesh filename="package://gryllo/urdf/gryllo/mesh/rotor_unit_leftside.STL"/>
         </geometry>
       </visual>
     </link>

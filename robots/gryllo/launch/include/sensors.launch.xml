@@ -2,7 +2,7 @@
 <launch>
   <arg name="real_machine" default="false" />
   <arg name="simulation" default="false" />
-  <arg name="robot_ns" default="gimbalrotor" />
+  <arg name="robot_ns" default="gryllo" />
 
   <group ns="$(arg robot_ns)">
 
@@ -21,7 +21,7 @@
     </group>
 
     <!-- basic configuration for sensors (e.g. noise sigma) -->
-    <rosparam file="$(find gimbalrotor)/config/sensors/imu/spinal.yaml" command="load" />
+    <rosparam file="$(find gryllo)/config/sensors/imu/spinal.yaml" command="load" />
     <rosparam file="$(find aerial_robot_base)/config/sensors/mocap.yaml" command="load" />
   </group>
 
