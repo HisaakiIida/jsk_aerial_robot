@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <robot
-    xmlns:xacro="http://www.ros.org/wiki/xacro" name="gimbalrotor_link" >
+    xmlns:xacro="http://www.ros.org/wiki/xacro" name="gryllo_link" >
 
-  <xacro:macro name="gimbalrotor_center_link" params="child1 child2 child3 child4">
+  <xacro:macro name="gryllo_center_link" params="child1 child2 child3 child4">
     ## dummy
     <link name="root">
       <inertial>
@@ -26,10 +26,10 @@
       <inertial>
         <origin xyz="0.1981 0.0000 0.1105
 " rpy="0 0 0"/>
-        <mass value="1.99364"/>
+        <mass value="2.0000"/>
         <inertia
             ixx="0.03038" iyy="0.25319" izz="0.24155"
-            ixy="0.00001" ixz="0.03528" iyz="0.00001"/>
+            ixy="0.00001" ixz="0.00031" iyz="0.00000"/>
       </inertial>
       <visual>
         <origin xyz="0 0 0" rpy="0 0 0"/>
@@ -38,9 +38,9 @@
         </geometry>
       </visual>
       <collision>
-        <origin xyz="0 0 0.09" rpy="0 0 0"/>
+        <origin xyz="0.225 0.0 0.1" rpy="0 0 0"/>
         <geometry>
-          <box size="0.996 0.350 0.180"/>
+          <box size="1.25 0.625 0.183"/>
         </geometry>
       </collision>
     </link>
@@ -49,7 +49,7 @@
 
     <link name="fc">
       <inertial>
-        <origin xyz="-0.017 -0.001 0.148" rpy="0 0 0"/>
+        <origin xyz="0.0 0.0 0.0" rpy="0 0 0"/>
         <mass value="0.00001"/>
         <inertia
             ixx="0.000001" ixy="0.0" ixz="0.0"
@@ -60,7 +60,7 @@
     <joint name="fc_joint" type="fixed">
       <child link="fc"/>
       <parent link="base_link"/>
-      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <origin xyz="-0.0173 0.0000 0.1476" rpy="0 0 0"/>
       <axis xyz="0 0 1"/>
     </joint>
 
@@ -74,18 +74,6 @@
             iyy="0.0001" iyz="0.0"
             izz="0.0001"/>
       </inertial>
-      <!-- <visual> -->
-      <!--   <origin xyz="0 0 0" rpy="0 0 0"/> -->
-      <!--   <geometry> -->
-      <!--     <mesh filename="package://gimbalrotor/urdf/quad/mesh/rotor_arm.STL"/> -->
-      <!--   </geometry> -->
-      <!-- </visual> -->
-      <!-- <collision> -->
-      <!--   <origin xyz="0 0 0" rpy="0 0 0"/> -->
-      <!--   <geometry> -->
-      <!--     <box size="0.131 0.0325 0.065"/> -->
-      <!--   </geometry> -->
-      <!-- </collision> -->
     </link>
     <joint name="base_arm_joint${child1}" type="fixed">
       <parent link="base_link"/>
@@ -103,18 +91,6 @@
             iyy="0.0001" iyz="0.0"
             izz="0.0001"/>
       </inertial>
-      <!-- <visual> -->
-      <!--   <origin xyz="0 0 0" rpy="0 0 0"/> -->
-      <!--   <geometry> -->
-      <!--     <mesh filename="package://gimbalrotor/urdf/quad/mesh/rotor_arm.STL"/> -->
-      <!--   </geometry> -->
-      <!-- </visual> -->
-      <!-- <collision> -->
-      <!--   <origin xyz="0 0 0" rpy="0 0 0"/> -->
-      <!--   <geometry> -->
-      <!--     <box size="0.131 0.0325 0.065"/> -->
-      <!--   </geometry>p -->
-      <!-- </collision> -->
     </link>
     <joint name="base_arm_joint${child2}" type="fixed">
       <parent link="base_link"/>
@@ -132,18 +108,6 @@
             iyy="0.0001" iyz="0.0"
             izz="0.0001"/>
       </inertial>
-      <!-- <visual> -->
-      <!--   <origin xyz="0 0 0" rpy="0 0 0"/> -->
-      <!--   <geometry> -->
-      <!--     <mesh filename="package://gimbalrotor/urdf/quad/mesh/rotor_arm.STL"/> -->
-      <!--   </geometry> -->
-      <!-- </visual> -->
-      <!-- <collision> -->
-      <!--   <origin xyz="0 0 0" rpy="0 0 0"/> -->
-      <!--   <geometry> -->
-      <!--     <box size="0.131 0.0325 0.065"/> -->
-      <!--   </geometry> -->
-      <!-- </collision> -->
     </link>
     <joint name="base_arm_joint${child3}" type="fixed">
       <parent link="base_link"/>
@@ -161,18 +125,6 @@
             iyy="0.0001" iyz="0.0"
             izz="0.0001"/>
       </inertial>
-      <!-- <visual> -->
-      <!--   <origin xyz="0 0 0" rpy="0 0 0"/> -->
-      <!--   <geometry> -->
-      <!--     <mesh filename="package://gimbalrotor/urdf/quad/mesh/rotor_arm.STL"/> -->
-      <!--   </geometry> -->
-      <!-- </visual> -->
-      <!-- <collision> -->
-      <!--   <origin xyz="0 0 0" rpy="0 0 0"/> -->
-      <!--   <geometry> -->
-      <!--     <box size="0.131 0.0325 0.065"/> -->
-      <!--   </geometry> -->
-      <!-- </collision> -->
     </link>
     <joint name="base_arm_joint${child4}" type="fixed">
       <parent link="base_link"/>
@@ -184,7 +136,7 @@
     <xacro:friction self="base_link"/>
   </xacro:macro>
 
-  <xacro:macro name="gimbalrotor_thrust_link" params="self rotor_direction">
+  <xacro:macro name="gryllo_thrust_link" params="self rotor_direction">
     ## link
     #### rotor parent link (virtual) ####
     <link name="gimbal_link${self}">

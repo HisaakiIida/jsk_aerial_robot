@@ -117,8 +117,8 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
       Name: RobotModel
-      Robot Description: gimbalrotor/robot_description
-      TF Prefix: gimbalrotor
+      Robot Description: gryllo/robot_description
+      TF Prefix: gryllo
       Update Interval: 0
       Value: true
       Visual Enabled: true
@@ -127,31 +127,31 @@ Visualization Manager:
       Frame Timeout: 15
       Frames:
         All Enabled: true
-        gimbalrotor/base_link:
+        gryllo/base_link:
           Value: true
-        gimbalrotor/cog:
+        gryllo/cog:
           Value: true
-        gimbalrotor/fc:
+        gryllo/fc:
           Value: true
-        gimbalrotor/gimbal_link1:
+        gryllo/gimbal_link1:
           Value: true
-        gimbalrotor/gimbal_link2:
+        gryllo/gimbal_link2:
           Value: true
-        gimbalrotor/gimbal_link3:
+        gryllo/gimbal_link3:
           Value: true
-        gimbalrotor/root:
+        gryllo/root:
           Value: true
-        gimbalrotor/rotor_parent1:
+        gryllo/rotor_parent1:
           Value: true
-        gimbalrotor/rotor_parent2:
+        gryllo/rotor_parent2:
           Value: true
-        gimbalrotor/rotor_parent3:
+        gryllo/rotor_parent3:
           Value: true
-        gimbalrotor/thrust1:
+        gryllo/thrust1:
           Value: true
-        gimbalrotor/thrust2:
+        gryllo/thrust2:
           Value: true
-        gimbalrotor/thrust3:
+        gryllo/thrust3:
           Value: true
         world:
           Value: true
@@ -162,23 +162,23 @@ Visualization Manager:
       Show Names: true
       Tree:
         world:
-          gimbalrotor/root:
-            gimbalrotor/base_link:
-              gimbalrotor/fc:
+          gryllo/root:
+            gryllo/base_link:
+              gryllo/fc:
                 {}
-              gimbalrotor/gimbal_link1:
-                gimbalrotor/rotor_parent1:
-                  gimbalrotor/thrust1:
+              gryllo/gimbal_link1:
+                gryllo/rotor_parent1:
+                  gryllo/thrust1:
                     {}
-              gimbalrotor/gimbal_link2:
-                gimbalrotor/rotor_parent2:
-                  gimbalrotor/thrust2:
+              gryllo/gimbal_link2:
+                gryllo/rotor_parent2:
+                  gryllo/thrust2:
                     {}
-              gimbalrotor/gimbal_link3:
-                gimbalrotor/rotor_parent3:
-                  gimbalrotor/thrust3:
+              gryllo/gimbal_link3:
+                gryllo/rotor_parent3:
+                  gryllo/thrust3:
                     {}
-            gimbalrotor/cog:
+            gryllo/cog:
               {}
       Update Interval: 0
       Value: true
