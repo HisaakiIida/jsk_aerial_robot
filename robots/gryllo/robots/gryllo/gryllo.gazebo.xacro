@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <robot
-    xmlns:xacro="http://www.ros.org/wiki/xacro" name="gimbalrotor" >
+    xmlns:xacro="http://www.ros.org/wiki/xacro" name="gryllo" >
   <xacro:arg name="robot_name" default="gryllo" />
 
   <xacro:include filename="$(find gryllo)/robots/gryllo/gryllo.urdf.xacro" />

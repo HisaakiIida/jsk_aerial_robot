@@ -14,5 +14,5 @@ def cb(msg: Imu):
 
 if __name__ == "__main__":
     rospy.init_node("imu_stamp_monotonic_checker")
-    rospy.Subscriber("/gimbalrotor/imu", Imu, cb, queue_size=200)
+    rospy.Subscriber("/gryllo/imu", Imu, cb, queue_size=200)
     rospy.spin()

@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <robot
-    xmlns:xacro="http://www.ros.org/wiki/xacro" name="gimbalrotor_common" >
+    xmlns:xacro="http://www.ros.org/wiki/xacro" name="gryllo_common" >
 
   <!-- general attribute -->
   <baselink name="fc" />
