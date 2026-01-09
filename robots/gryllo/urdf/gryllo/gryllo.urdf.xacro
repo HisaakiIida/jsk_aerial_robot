@@ -24,12 +24,11 @@
     ## link
     <link name="base_link">
       <inertial>
-        <origin xyz="0.1981 0.0000 0.1105
-" rpy="0 0 0"/>
+        <origin xyz="-0.0243 0.0000 0.1014" rpy="0 0 0"/>
         <mass value="2.0000"/>
         <inertia
-            ixx="0.03038" iyy="0.25319" izz="0.24155"
-            ixy="0.00001" ixz="0.00031" iyz="0.00000"/>
+            ixx="0.03474" iyy="0.23243" izz="0.22192"
+            ixy="0.00001" ixz="0.00469" iyz="0.00000"/>
       </inertial>
       <visual>
         <origin xyz="0 0 0" rpy="0 0 0"/>
@@ -38,7 +37,7 @@
         </geometry>
       </visual>
       <collision>
-        <origin xyz="0.225 0.0 0.1" rpy="0 0 0"/>
+        <origin xyz="0.0 0.0 0.1" rpy="0 0 0"/>
         <geometry>
           <box size="1.25 0.625 0.183"/>
         </geometry>
@@ -60,7 +59,7 @@
     <joint name="fc_joint" type="fixed">
       <child link="fc"/>
       <parent link="base_link"/>
-      <origin xyz="-0.0173 0.0000 0.1476" rpy="0 0 0"/>
+      <origin xyz="-0.2304 0.0011 0.1391" rpy="0 0 0"/>
       <axis xyz="0 0 1"/>
     </joint>
 
@@ -78,7 +77,7 @@
     <joint name="base_arm_joint${child1}" type="fixed">
       <parent link="base_link"/>
       <child link="rotor_arm${child1}"/>
-      <origin rpy="0 0 ${pi*3.0/4.0}" xyz="-0.263 0.174 0.134"/>
+      <origin rpy="0 0 ${pi*3.0/4.0}" xyz="-0.479 0.173 0.125"/>
       <axis xyz="0 0 1"/>
     </joint>
 
@@ -95,7 +94,7 @@
     <joint name="base_arm_joint${child2}" type="fixed">
       <parent link="base_link"/>
       <child link="rotor_arm${child2}"/>
-      <origin rpy="0 0 ${pi*5.0/4.0}" xyz="-0.263 -0.174 0.134"/>
+      <origin rpy="0 0 ${pi*5.0/4.0}" xyz="-0.479 -0.173 0.125"/>
       <axis xyz="0 0 1"/>
     </joint>
 
@@ -112,7 +111,7 @@
     <joint name="base_arm_joint${child3}" type="fixed">
       <parent link="base_link"/>
       <child link="rotor_arm${child3}"/>
-      <origin rpy="0 0 ${-pi/4.0}" xyz="0.713 -0.174 0.134"/>
+      <origin rpy="0 0 ${-pi/4.0}" xyz="0.479 -0.173 0.125"/>
       <axis xyz="0 0 1"/>
     </joint>
 
@@ -129,7 +128,7 @@
     <joint name="base_arm_joint${child4}" type="fixed">
       <parent link="base_link"/>
       <child link="rotor_arm${child4}"/>
-      <origin rpy="0 0 ${pi/4.0}" xyz="0.713 0.174 0.134"/>
+      <origin rpy="0 0 ${pi/4.0}" xyz="0.479 0.173 0.125"/>
       <axis xyz="0 0 1"/>
     </joint>
 
