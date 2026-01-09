@@ -245,6 +245,7 @@ namespace aerial_robot_control
 
     if(gimbal_calc_in_fc_){
       sendTorqueAllocationMatrixInv();
+      setAttitudeGains();
     }
     else
       {
