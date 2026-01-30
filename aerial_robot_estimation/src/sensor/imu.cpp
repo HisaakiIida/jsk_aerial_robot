@@ -124,8 +124,9 @@ namespace sensor_plugin
   {
     if(imu_stamp_.toSec() <= prev_time.toSec())
       {
-        ROS_WARN("IMU: bad timestamp. curr time stamp: %f, prev time stamp: %f",
-                 imu_stamp_.toSec(), prev_time.toSec());
+	// Modified!!
+        // ROS_WARN("IMU: bad timestamp. curr time stamp: %f, prev time stamp: %f",
+        //          imu_stamp_.toSec(), prev_time.toSec());
         return;
       }
 
