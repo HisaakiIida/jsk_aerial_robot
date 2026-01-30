@@ -10,9 +10,9 @@ def main():
 
     cmd = ServoControlCmd()
     # cmd.index = [0, 1, 2, 3, 4, 5, 6, 7]
-    # cmd.angles = [2048, 2048, 2048, 2048, 2048, 2048, 1850, 1500]
+    # cmd.angles = [2048, 2048, 2048, 2048, 2048, 2048, 2000, 2000]
     cmd.index = [4, 5, 6, 7]
-    cmd.angles = [2048, 2048, 1900, 1550]
+    cmd.angles = [2048, 2048, 2700, 2600]
     
     rate = rospy.Rate(10)
     for _ in range(10):
