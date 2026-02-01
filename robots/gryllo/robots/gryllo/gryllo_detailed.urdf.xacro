@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="gryllo">
+
+  <xacro:include filename="$(find gryllo)/urdf/gryllo/gryllo_detailed.urdf.xacro" />
+
+  <xacro:gryllo_center_link_with_spine child1="1" child2="2" child3="3" child4="4" pitch="0.0605"/>
+
+  <xacro:gryllo_thrust_link self="1" rotor_direction="-1"/>
+  <xacro:gryllo_thrust_link self="2" rotor_direction="1"/>
+  <xacro:gryllo_thrust_link self="3" rotor_direction="-1"/>
+  <xacro:gryllo_thrust_link self="4" rotor_direction="1"/>
+
+</robot>

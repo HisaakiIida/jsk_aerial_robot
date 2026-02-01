@@ -33,7 +33,7 @@
       <visual>
         <origin xyz="0 0 0" rpy="0 0 0"/>
         <geometry>
-          <mesh filename="package://gryllo/urdf/gryllo/mesh/bodylink_45d.STL"/>
+          <mesh filename="package://gryllo/urdf/gryllo/mesh/simple/bodylink_45d.STL"/>
         </geometry>
       </visual>
       <collision>
@@ -155,7 +155,7 @@
       <visual>
         <origin xyz="0 0 0" rpy="0 0 0"/>
         <geometry>
-          <mesh filename="package://gryllo/urdf/gryllo/mesh/rotor_unit_leftside.STL"/>
+          <mesh filename="package://gryllo/urdf/gryllo/mesh/simple/rotor_unit_leftside.STL"/>
         </geometry>
       </visual>
     </link>
