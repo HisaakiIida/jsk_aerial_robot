@@ -2,5 +2,5 @@ zeros:
   gimbal1: 0
   gimbal2: 0
   gimbal3: 0
-  
-
+  act_unit_joint_1: 0
+  act_unit_joint_2: 0

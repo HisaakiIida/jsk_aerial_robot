@@ -1,41 +1,75 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="gryllo_link">
-
-  <!-- damping_factor / friction / pi 等の定義を持っている前提 -->
   <xacro:include filename="$(find gryllo)/urdf/gryllo/common.xacro" />
-
-  <!-- 既存定義と衝突しにくい引数（未指定なら default を使う） -->
   <xacro:arg name="min_force" default="-30.0"/>
   <xacro:arg name="max_force" default="30.0"/>
-  <!-- <xacro:arg name="pitch" default="0.0605"/> -->
 
-  <!-- =========================================================
-       Center (front base) + spine_1..5 + rear base
-       collision は全削除
-       ========================================================= -->
   <xacro:macro name="gryllo_center_link_with_spine" params="child1 child2 child3 child4 pitch">
-
-    <!-- dummy root -->
+    ## dummy ##
     <link name="root">
       <inertial>
         <origin xyz="0 0 0" rpy="0 0 0"/>
         <mass value="0.01"/>
-        <inertia ixx="1e-5" ixy="0" ixz="0" iyy="1e-5" iyz="0" izz="1e-5"/>
+        <inertia ixx="0.00001" iyy="0.00001" izz="0.00001" ixy="0" ixz="0" iyz="0"/>
       </inertial>
     </link>
-
     <joint name="root_joint" type="fixed">
       <parent link="root"/>
       <child link="base_link"/>
       <origin xyz="0 0 0" rpy="0 0 0"/>
     </joint>
 
-    <!-- ===== front base ===== -->
+    ## link ##
+    #### rear base ####
     <link name="base_link">
+      <inertial>
+        <origin xyz="0.0099 0.0000 0.1014" rpy="0 0 0"/>
+        <mass value="0.44985"/>
+        <inertia ixx="0.00506" iyy="0.00342" izz="0.00718" ixy="0.00000" ixz="-0.00027" iyz="0.00000"/>
+      </inertial>
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <mesh filename="package://gryllo/urdf/gryllo/mesh/detailed/gimbal_base_esccon.STL"/>
+        </geometry>
+      </visual>
+      <collision>
+	<origin xyz="0 0 0" rpy="0 0 0"/>
+	<geometry>
+	  <box size="0.25 0.25 0.10"/>
+	</geometry>
+      </collision>
+    </link>
+    <xacro:damping_factor link="base_link"/>
+
+    #### front base ####
+    <link name="base_link_2">
+      <inertial>
+        <origin xyz="0.0099 -0.0655 0.0012" rpy="0 0 0"/>
+        <mass value="0.41059"/>
+        <inertia ixx="0.00484" iyy="0.00320" izz="0.00716" ixy="0.00000" ixz="-0.00030" iyz="0.00000"/>
+      </inertial>
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <mesh filename="package://gryllo/urdf/gryllo/mesh/detailed/gimbal_base.STL"/>
+        </geometry>
+      </visual>
+      <collision>
+	<origin xyz="0 0 0" rpy="0 0 0"/>
+	<geometry>
+	  <box size="0.25 0.25 0.10"/>
+	</geometry>
+      </collision>
+    </link>
+    <xacro:damping_factor link="base_link_2"/>
+
+    #### rear act unit ####
+    <link name="act_unit">
       <inertial>
         <origin xyz="0.0099 -0.0655 0.0012" rpy="0 0 0"/>
         <mass value="0.30623"/>
-        <inertia ixx="0.00169" iyy="0.00221" izz="0.00065" ixy="0" ixz="-0.00008" iyz="0"/>
+        <inertia ixx="0.00169" iyy="0.00221" izz="0.00065" ixy="0.00000" ixz="-0.00008" iyz="0.00000"/>
       </inertial>
       <visual>
         <origin xyz="0 0 0" rpy="0 0 0"/>
@@ -44,14 +78,13 @@
         </geometry>
       </visual>
     </link>
-    <xacro:damping_factor link="base_link"/>
 
-    <!-- ===== rear base ===== -->
-    <link name="base_link_2">
+    #### front act unit ####
+    <link name="act_unit_2">
       <inertial>
         <origin xyz="0.0099 -0.0655 0.0012" rpy="0 0 0"/>
-        <mass value="0.30623"/>
-        <inertia ixx="0.00169" iyy="0.00221" izz="0.00065" ixy="0" ixz="-0.00008" iyz="0"/>
+        <mass value="0.17878"/>
+        <inertia ixx="0.00021" iyy="0.00181" izz="0.00165" ixy="0.00000" ixz="0.00037" iyz="0.00000"/>
       </inertial>
       <visual>
         <origin xyz="0 0 0" rpy="0 0 0"/>
@@ -60,70 +93,28 @@
         </geometry>
       </visual>
     </link>
-    <xacro:damping_factor link="base_link_2"/>
-    
-    <!-- ===== fc ===== -->
+    <xacro:damping_factor link="act_unit_2"/>
+
+    #### fc ####
     <link name="fc">
       <inertial>
         <origin xyz="0 0 0" rpy="0 0 0"/>
-        <mass value="0.05"/>
-        <inertia ixx="1e-4" ixy="0" ixz="0" iyy="1e-4" iyz="0" izz="1e-4"/>
+        <mass value="0.00001"/>
+        <inertia ixx="0.00001" iyy="0.00001" izz="0.00001" ixy="0.00000" ixz="0.00000" iyz="0.00000"/>
       </inertial>
     </link>
     <joint name="fc_joint" type="fixed">
-      <parent link="base_link"/>
+      <parent link="act_unit"/>
       <child link="fc"/>
       <origin xyz="0 0 0" rpy="0 0 0"/>
     </joint>
 
-    <!-- ===== front gimbalbase ===== -->
-    <link name="gimbal_base">
-      <inertial>
-        <origin xyz="0.0099 -0.0655 0.0012" rpy="0 0 0"/>
-        <mass value="0.30623"/>
-        <inertia ixx="0.00169" iyy="0.00221" izz="0.00065" ixy="0" ixz="-0.00008" iyz="0"/>
-      </inertial>
-      <visual>
-        <origin xyz="0 0 0" rpy="0 0 0"/>
-        <geometry>
-          <mesh filename="package://gryllo/urdf/gryllo/mesh/detailed/gimbal_base_esccon.STL"/>
-        </geometry>
-      </visual>
-    </link>
-    <joint name="gimbal_base_joint" type="fixed">
-      <parent link="base_link"/>
-      <child link="gimbal_base"/>
-      <origin xyz="0 0 0" rpy="0 0 0"/>
-    </joint>
-    <xacro:damping_factor link="gimbal_base"/>
-
-    <!-- ===== rear gimbalbase ===== -->
-    <link name="gimbal_base_2">
-      <inertial>
-        <origin xyz="0.0099 -0.0655 0.0012" rpy="0 0 0"/>
-        <mass value="0.30623"/>
-        <inertia ixx="0.00169" iyy="0.00221" izz="0.00065" ixy="0" ixz="-0.00008" iyz="0"/>
-      </inertial>
-      <visual>
-        <origin xyz="0 0 0" rpy="0 0 0"/>
-        <geometry>
-          <mesh filename="package://gryllo/urdf/gryllo/mesh/detailed/gimbal_base.STL"/>
-        </geometry>
-      </visual>
-    </link>
-    <joint name="gimbal_base_2_joint" type="fixed">
-      <parent link="base_link_2"/>
-      <child link="gimbal_base_2"/>
-      <origin xyz="0 0 0" rpy="0 0 0"/>
-    </joint>
-    <xacro:damping_factor link="gimbal_base_2"/>    
-
-    <!-- ===== spine_1..5 (逐次) ===== -->
+    #### spine links 1-5 ####
     <link name="spine_1">
       <inertial>
 	<origin xyz="0 0 0" rpy="0 0 0"/>
-	<mass value="0.10"/>
-	<inertia ixx="8e-4" ixy="0" ixz="0" iyy="8e-4" iyz="0" izz="8e-4"/>
+	<mass value="0.03000"/>
+	<inertia ixx="0.00001" iyy="0.00004" izz="0.00003" ixy="0.00000" ixz="0.00001" iyz="0.00000"/>
       </inertial>
       <visual>
 	<origin xyz="0 0 0" rpy="0 0 0"/>
@@ -133,19 +124,12 @@
       </visual>
     </link>
     <xacro:damping_factor link="spine_1"/>
-    <joint name="spine_joint_0" type="fixed">
-      <parent link="base_link"/><child link="spine_1"/>
-      <origin xyz="${pitch} 0 0" rpy="0 0 0"/>
-      <axis xyz="0 0 1"/>
-      <limit lower="-1.57" upper="1.57" effort="5.0" velocity="2.0"/>
-      <dynamics damping="1.0" friction="0.0"/>
-    </joint>
 
     <link name="spine_2">
       <inertial>
 	<origin xyz="0 0 0" rpy="0 0 0"/>
-	<mass value="0.10"/>
-	<inertia ixx="8e-4" ixy="0" ixz="0" iyy="8e-4" iyz="0" izz="8e-4"/>
+	<mass value="0.03000"/>
+	<inertia ixx="0.00001" iyy="0.00004" izz="0.00003" ixy="0.00000" ixz="0.00001" iyz="0.00000"/>
       </inertial>
       <visual>
 	<origin xyz="0 0 0" rpy="0 0 0"/>
@@ -155,19 +139,12 @@
       </visual>
     </link>
     <xacro:damping_factor link="spine_2"/>
-    <joint name="spine_joint_1" type="fixed">
-      <parent link="spine_1"/><child link="spine_2"/>
-      <origin xyz="${pitch} 0 0" rpy="0 0 0"/>
-      <axis xyz="0 0 1"/>
-      <limit lower="-1.57" upper="1.57" effort="5.0" velocity="2.0"/>
-      <dynamics damping="1.0" friction="0.0"/>
-    </joint>
 
     <link name="spine_3">
       <inertial>
 	<origin xyz="0 0 0" rpy="0 0 0"/>
-	<mass value="0.10"/>
-	<inertia ixx="8e-4" ixy="0" ixz="0" iyy="8e-4" iyz="0" izz="8e-4"/>
+	<mass value="0.03000"/>
+	<inertia ixx="0.00001" iyy="0.00004" izz="0.00003" ixy="0.00000" ixz="0.00001" iyz="0.00000"/>
       </inertial>
       <visual>
 	<origin xyz="0 0 0" rpy="0 0 0"/>
@@ -177,19 +154,12 @@
       </visual>
     </link>
     <xacro:damping_factor link="spine_3"/>
-    <joint name="spine_joint_2" type="fixed">
-      <parent link="spine_2"/><child link="spine_3"/>
-      <origin xyz="${pitch} 0 0" rpy="0 0 0"/>
-      <axis xyz="0 0 1"/>
-      <limit lower="-1.57" upper="1.57" effort="5.0" velocity="2.0"/>
-      <dynamics damping="1.0" friction="0.0"/>
-    </joint>
 
     <link name="spine_4">
       <inertial>
 	<origin xyz="0 0 0" rpy="0 0 0"/>
-	<mass value="0.10"/>
-	<inertia ixx="8e-4" ixy="0" ixz="0" iyy="8e-4" iyz="0" izz="8e-4"/>
+	<mass value="0.03000"/>
+	<inertia ixx="0.00001" iyy="0.00004" izz="0.00003" ixy="0.00000" ixz="0.00001" iyz="0.00000"/>
       </inertial>
       <visual>
 	<origin xyz="0 0 0" rpy="0 0 0"/>
@@ -199,19 +169,12 @@
       </visual>
     </link>
     <xacro:damping_factor link="spine_4"/>
-    <joint name="spine_joint_3" type="fixed">
-      <parent link="spine_3"/><child link="spine_4"/>
-      <origin xyz="${pitch} 0 0" rpy="0 0 0"/>
-      <axis xyz="0 0 1"/>
-      <limit lower="-1.57" upper="1.57" effort="5.0" velocity="2.0"/>
-      <dynamics damping="1.0" friction="0.0"/>
-    </joint>
 
     <link name="spine_5">
       <inertial>
 	<origin xyz="0 0 0" rpy="0 0 0"/>
-	<mass value="0.10"/>
-	<inertia ixx="8e-4" ixy="0" ixz="0" iyy="8e-4" iyz="0" izz="8e-4"/>
+	<mass value="0.03000"/>
+	<inertia ixx="0.00001" iyy="0.00004" izz="0.00003" ixy="0.00000" ixz="0.00001" iyz="0.00000"/>
       </inertial>
       <visual>
 	<origin xyz="0 0 0" rpy="0 0 0"/>
@@ -221,83 +184,210 @@
       </visual>
     </link>
     <xacro:damping_factor link="spine_5"/>
-    <joint name="spine_joint_4" type="fixed">
-      <parent link="spine_4"/><child link="spine_5"/>
-      <origin xyz="${pitch} 0 0" rpy="0 0 0"/>
+
+    ## joints ##
+    #### spine joints ####
+    <joint name="spine_joint_1" type="revolute">
+      <parent link="act_unit"/>
+      <child link="spine_1"/>
+      <origin xyz="0.079 0.001 -0.033" rpy="0 0 0"/>
       <axis xyz="0 0 1"/>
-      <limit lower="-1.57" upper="1.57" effort="5.0" velocity="2.0"/>
+      <limit lower="-0.52" upper="0.52" effort="5.0" velocity="2.0"/>
       <dynamics damping="1.0" friction="0.0"/>
     </joint>
 
-    <joint name="spine_to_base_link_2" type="fixed">
-      <parent link="spine_5"/><child link="base_link_2"/>
+    <joint name="spine_joint_2" type="revolute">
+      <parent link="spine_1"/>
+      <child link="spine_2"/>
       <origin xyz="${pitch} 0 0" rpy="0 0 0"/>
+      <axis xyz="0 0 1"/>
+      <limit lower="-0.52" upper="0.52" effort="5.0" velocity="2.0"/>
+      <dynamics damping="1.0" friction="0.0"/>
     </joint>
 
-    <!-- rotor arms -->
+    <joint name="spine_joint_3" type="revolute">
+      <parent link="spine_2"/>
+      <child link="spine_3"/>
+      <origin xyz="${pitch} 0 0" rpy="0 0 0"/>
+      <axis xyz="0 0 1"/>
+      <limit lower="-0.52" upper="0.52" effort="5.0" velocity="2.0"/>
+      <dynamics damping="1.0" friction="0.0"/>
+    </joint>
+
+    <joint name="spine_joint_4" type="revolute">
+      <parent link="spine_3"/>
+      <child link="spine_4"/>
+      <origin xyz="${pitch} 0 0" rpy="0 0 0"/>
+      <axis xyz="0 0 1"/>
+      <limit lower="-0.52" upper="0.52" effort="5.0" velocity="2.0"/>
+      <dynamics damping="1.0" friction="0.0"/>
+    </joint>
+
+    <joint name="spine_joint_5" type="revolute">
+      <parent link="spine_4"/>
+      <child link="spine_5"/>
+      <origin xyz="${pitch} 0 0" rpy="0 0 0"/>
+      <axis xyz="0 0 1"/>
+      <limit lower="-0.52" upper="0.52" effort="5.0" velocity="2.0"/>
+      <dynamics damping="1.0" friction="0.0"/>
+    </joint>
+    
+    <!-- <joint name="spine_joint_1" type="fixed"> -->
+    <!--   <parent link="act_unit"/> -->
+    <!--   <child link="spine_1"/> -->
+    <!--   <origin xyz="0.079 0.001 -0.033" rpy="0 0 0"/> -->
+    <!--   <axis xyz="0 0 1"/> -->
+    <!--   <limit lower="-0.52" upper="0.52" effort="5.0" velocity="2.0"/> -->
+    <!--   <dynamics damping="1.0" friction="0.0"/> -->
+    <!-- </joint> -->
+
+    <!-- <joint name="spine_joint_2" type="fixed"> -->
+    <!--   <parent link="spine_1"/> -->
+    <!--   <child link="spine_2"/> -->
+    <!--   <origin xyz="${pitch} 0 0" rpy="0 0 0"/> -->
+    <!--   <axis xyz="0 0 1"/> -->
+    <!--   <limit lower="-0.52" upper="0.52" effort="5.0" velocity="2.0"/> -->
+    <!--   <dynamics damping="1.0" friction="0.0"/> -->
+    <!-- </joint> -->
+
+    <!-- <joint name="spine_joint_3" type="fixed"> -->
+    <!--   <parent link="spine_2"/> -->
+    <!--   <child link="spine_3"/> -->
+    <!--   <origin xyz="${pitch} 0 0" rpy="0 0 0"/> -->
+    <!--   <axis xyz="0 0 1"/> -->
+    <!--   <limit lower="-0.52" upper="0.52" effort="5.0" velocity="2.0"/> -->
+    <!--   <dynamics damping="1.0" friction="0.0"/> -->
+    <!-- </joint> -->
+
+    <!-- <joint name="spine_joint_4" type="fixed"> -->
+    <!--   <parent link="spine_3"/> -->
+    <!--   <child link="spine_4"/> -->
+    <!--   <origin xyz="${pitch} 0 0" rpy="0 0 0"/> -->
+    <!--   <axis xyz="0 0 1"/> -->
+    <!--   <limit lower="-0.52" upper="0.52" effort="5.0" velocity="2.0"/> -->
+    <!--   <dynamics damping="1.0" friction="0.0"/> -->
+    <!-- </joint> -->
+
+    <!-- <joint name="spine_joint_5" type="fixed"> -->
+    <!--   <parent link="spine_4"/> -->
+    <!--   <child link="spine_5"/> -->
+    <!--   <origin xyz="${pitch} 0 0" rpy="0 0 0"/> -->
+    <!--   <axis xyz="0 0 1"/> -->
+    <!--   <limit lower="-0.52" upper="0.52" effort="5.0" velocity="2.0"/> -->
+    <!--   <dynamics damping="1.0" friction="0.0"/> -->
+    <!-- </joint> -->
+
+    <joint name="spine_joint_6" type="fixed">
+      <parent link="spine_5"/>
+      <child link="act_unit_2"/>
+      <origin xyz="${pitch} 0 0" rpy="0 0 0"/>
+      <axis xyz="0 0 1"/>
+      <limit lower="-0.52" upper="0.52" effort="5.0" velocity="2.0"/>
+      <dynamics damping="1.0" friction="0.0"/>
+    </joint>
+
+    #### rotor arms ####
     <link name="rotor_arm${child1}">
       <inertial>
 	<origin xyz="0 0 0" rpy="0 0 0"/>
-	<mass value="0.05"/>
-	<inertia ixx="2e-4" ixy="0" ixz="0" iyy="2e-4" iyz="0" izz="2e-4"/>
+	<mass value="0.00001"/>
+	<inertia ixx="0.00001" iyy="0.00001" izz="0.00001" ixy="0.00000" ixz="0.00000" iyz="0.00000"/>
       </inertial>
     </link>
     <joint name="base_arm_joint${child1}" type="fixed">
-      <parent link="gimbal_base"/>
+      <parent link="base_link"/>
       <child link="rotor_arm${child1}"/>
-      <origin rpy="0 0 ${pi*3.0/4.0}" xyz="-0.479 0.173 0.125"/>
+      <origin rpy="0 0 ${pi*3.0/4.0}" xyz="-0.134 0.173 0.034"/>
     </joint>
 
     <link name="rotor_arm${child2}">
       <inertial>
 	<origin xyz="0 0 0" rpy="0 0 0"/>
-	<mass value="0.05"/>
-	<inertia ixx="2e-4" ixy="0" ixz="0" iyy="2e-4" iyz="0" izz="2e-4"/>
-_      </inertial>
+	<mass value="0.00001"/>
+	<inertia ixx="0.00001" iyy="0.00001" izz="0.00001" ixy="0.00000" ixz="0.00000" iyz="0.00000"/>
+      </inertial>
     </link>
     <joint name="base_arm_joint${child2}" type="fixed">
-      <parent link="gimbal_base"/>
+      <parent link="base_link"/>
       <child link="rotor_arm${child2}"/>
-      <origin rpy="0 0 ${pi*5.0/4.0}" xyz="-0.479 -0.173 0.125"/>
+      <origin rpy="0 0 ${pi*5.0/4.0}" xyz="-0.134 -0.173 0.034"/>
     </joint>
 
     <link name="rotor_arm${child3}">
       <inertial>
 	<origin xyz="0 0 0" rpy="0 0 0"/>
-	<mass value="0.05"/>
-	<inertia ixx="2e-4" ixy="0" ixz="0" iyy="2e-4" iyz="0" izz="2e-4"/>
+	<mass value="0.00001"/>
+	<inertia ixx="0.00001" iyy="0.00001" izz="0.00001" ixy="0.00000" ixz="0.00000" iyz="0.00000"/>
       </inertial>
     </link>
     <joint name="base_arm_joint${child3}" type="fixed">
-      <parent link="gimbal_base_2"/>
+      <parent link="base_link_2"/>
       <child link="rotor_arm${child3}"/>
-      <origin rpy="0 0 ${-pi/4.0}" xyz="0.479 -0.173 0.125"/>
+      <origin rpy="0 0 ${-pi/4.0}" xyz="0.134 -0.173 0.034"/>
     </joint>
 
     <link name="rotor_arm${child4}">
       <inertial>
 	<origin xyz="0 0 0" rpy="0 0 0"/>
-	<mass value="0.05"/>
-	<inertia ixx="2e-4" ixy="0" ixz="0" iyy="2e-4" iyz="0" izz="2e-4"/>
+	<mass value="0.00001"/>
+	<inertia ixx="0.00001" iyy="0.00001" izz="0.00001" ixy="0.00000" ixz="0.00000" iyz="0.00000"/>
       </inertial>
     </link>
     <joint name="base_arm_joint${child4}" type="fixed">
-      <parent link="gimbal_base_2"/>
+      <parent link="base_link_2"/>
       <child link="rotor_arm${child4}"/>
-      <origin rpy="0 0 ${pi/4.0}" xyz="0.479 0.173 0.125"/>
+      <origin rpy="0 0 ${pi/4.0}" xyz="0.134 0.173 0.034"/>
     </joint>
 
-    <xacro:friction self="gimbal_base"/>
-    <xacro:friction self="gimbal_base_2"/>
+    <xacro:friction self="base_link"/>
+    <xacro:friction self="base_link_2"/>
 
+    #### roll joints ####
+    <joint name="act_unit_joint_1" type="revolute">
+      <limit effort="1.5" lower="-2.0" upper="2.0" velocity="3.0"/>
+      <parent link="base_link"/>
+      <child link="act_unit"/>
+      <origin rpy="0 0 0" xyz="0.115 0.001 0.047"/>
+      <axis xyz="1 0 0"/>
+      <dynamics damping="0.8" friction="0.0"/>
+    </joint>
+
+    <transmission name="joint_tran_5">
+      <type>transmission_interface/SimpleTransmission</type>
+      <joint name="act_unit_joint_1">
+        <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+      </joint>
+      <actuator name="spine_rotator_1">
+        <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+        <mechanicalReduction>1</mechanicalReduction>
+      </actuator>
+    </transmission>
+
+    <joint name="act_unit_joint_2" type="revolute">
+      <limit effort="1.5" lower="-2.0" upper="2.0" velocity="3.0"/>
+      <parent link="act_unit_2"/>
+      <child link="base_link_2"/>
+      <origin rpy="0 0 0" xyz="0.194 0.0 -0.014"/>
+      <axis xyz="1 0 0"/>
+      <dynamics damping="0.8" friction="0.0"/>
+    </joint>
+    
+    <transmission name="joint_tran_6">
+      <type>transmission_interface/SimpleTransmission</type>
+      <joint name="act_unit_joint_2">
+        <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+      </joint>
+      <actuator name="spine_rotator_2">
+        <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+        <mechanicalReduction>1</mechanicalReduction>
+      </actuator>
+    </transmission>    
   </xacro:macro>
 
-
-  <!-- =========================================================
-       Rotor macro
-       ========================================================= -->
   <xacro:macro name="gryllo_thrust_link" params="self rotor_direction">
 
+    ## link
+    #### rotor parent link (virtual) ####
     <link name="gimbal_link${self}">
       <inertial>
         <origin xyz="0 0 0" rpy="0 0 0"/>
@@ -313,20 +403,38 @@ _      </inertial>
     </link>
     <xacro:damping_factor link="gimbal_link${self}"/>
 
+    ## rotor parent link (virtual)
     <link name="rotor_parent${self}">
-      <inertial><origin xyz="0 0 0" rpy="0 0 0"/><mass value="0.05"/><inertia ixx="1e-4" ixy="0" ixz="0" iyy="1e-4" iyz="0" izz="1e-4"/></inertial>
+      <inertial>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <mass value="0.00001"/>
+        <inertia
+            ixx="0.000001" ixy="0.0" ixz="0.0"
+            iyy="0.000001" iyz="0.0"
+            izz="0.000001"/>
+      </inertial>
     </link>
-
+    
+    ## thrust link (virtual)
     <link name="thrust${self}">
-      <inertial><origin xyz="0 0 0" rpy="0 0 0"/><mass value="0.05"/><inertia ixx="1e-4" ixy="0" ixz="0" iyy="1e-4" iyz="0" izz="1e-4"/></inertial>
+      <inertial>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <mass value="0.00001"/>
+        <inertia
+            ixx="0.001" ixy="0.0" ixz="0.0"
+            iyy="0.001" iyz="0.0"
+            izz="0.001"/>
+      </inertial>
     </link>
     <xacro:damping_factor link="thrust${self}"/>
 
+    #### joints ####    
+    #### gimbal joints ####
     <joint name="gimbal${self}" type="revolute">
       <limit effort="1.5" lower="-2.0" upper="2.0" velocity="3.0"/>
       <parent link="rotor_arm${self}"/>
       <child link="gimbal_link${self}"/>
-      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <origin rpy="0 0 0" xyz="0.0 0.0 0.0"/>
       <axis xyz="1 0 0"/>
       <dynamics damping="0.8" friction="0.0"/>
     </joint>
@@ -342,17 +450,20 @@ _      </inertial>
       </actuator>
     </transmission>
 
+    #### rotor parent link joint (virtual) ####
     <joint name="rotor_parent_link_joint${self}" type="fixed">
       <parent link="gimbal_link${self}"/>
       <child link="rotor_parent${self}"/>
-      <origin xyz="0.0848 0 0" rpy="0 0 0"/>
+      <origin rpy="0 0 0" xyz="0.0848 0.0 0.0"/>
+      <axis xyz="0 0 ${rotor_direction}"/>
     </joint>
 
+    #### rotor joint (virtual) ####
     <joint name="rotor${self}" type="continuous">
       <limit effort="100.0" lower="${min_force}" upper="${max_force}" velocity="0.5"/>
       <parent link="rotor_parent${self}"/>
       <child link="thrust${self}"/>
-      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
       <axis xyz="0 0 ${rotor_direction}"/>
     </joint>
 
@@ -365,7 +476,7 @@ _      </inertial>
         <hardwareInterface>RotorInterface</hardwareInterface>
         <mechanicalReduction>1</mechanicalReduction>
       </actuator>
-    </transmission>
+    </transmission>    
 
   </xacro:macro>
 
