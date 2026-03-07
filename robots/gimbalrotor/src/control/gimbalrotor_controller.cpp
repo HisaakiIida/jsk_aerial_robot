@@ -248,22 +248,67 @@ namespace aerial_robot_control
       setAttitudeGains();
     }
     else
+      // {
+      //   sensor_msgs::JointState gimbal_control_msg;
+      //   gimbal_control_msg.header.stamp = ros::Time::now();
+      //   for(int i = 0; i < motor_num_; i++){
+      //     if(gimbal_dof_ == 1)
+      //       {
+      //         gimbal_control_msg.position.push_back(target_gimbal_angles_.at(i));
+      //       }
+      //     else if(gimbal_dof_ == 2)
+      //       {
+      //         gimbal_control_msg.position.push_back(target_gimbal_angles_.at(2*i));
+      //         gimbal_control_msg.position.push_back(target_gimbal_angles_.at(2*i + 1));
+      //       }
+      //   }
+      
+      //   gimbal_control_pub_.publish(gimbal_control_msg);        
+
+      //   std_msgs::Float32MultiArray target_vectoring_force_msg;
+      //   target_vectoring_f_ = target_vectoring_f_trans_ + target_vectoring_f_rot_;
+      //   for(int i = 0; i < target_vectoring_f_.size(); i++){
+      //     target_vectoring_force_msg.data.push_back(target_vectoring_f_(i));
+      //   }
+      //   target_vectoring_force_pub_.publish(target_vectoring_force_msg);
+        
+      // }
       {
         sensor_msgs::JointState gimbal_control_msg;
         gimbal_control_msg.header.stamp = ros::Time::now();
         for(int i = 0; i < motor_num_; i++){
           if(gimbal_dof_ == 1)
             {
+	      gimbal_control_msg.name.push_back("gimbal" + std::to_string(i+1));
               gimbal_control_msg.position.push_back(target_gimbal_angles_.at(i));
             }
           else if(gimbal_dof_ == 2)
             {
+	      gimbal_control_msg.name.push_back("gimbal" + std::to_string(i+1) + "_roll");
               gimbal_control_msg.position.push_back(target_gimbal_angles_.at(2*i));
+	      gimbal_control_msg.name.push_back("gimbal" + std::to_string(i+1) + "_pitch");
               gimbal_control_msg.position.push_back(target_gimbal_angles_.at(2*i + 1));
             }
         }
+
+	gimbal_control_msg.name.push_back("act_unit_joint_1");
+	gimbal_control_msg.position.push_back(0.0);
+
+	gimbal_control_msg.name.push_back("act_unit_joint_2");
+	gimbal_control_msg.position.push_back(0.0);
+
+	gimbal_control_msg.name.push_back("spine_joint_1");
+	gimbal_control_msg.position.push_back(0.0);
+
+	// ROS_INFO("gimbals_ctrl: names=%zu, pos=%zu",
+        //   gimbal_control_msg.name.size(),
+        //   gimbal_control_msg.position.size());
+
+	// for(size_t i = 0; i < gimbal_control_msg.name.size(); ++i)
+	//   ROS_INFO("name[%zu]=%s", i, gimbal_control_msg.name[i].c_str());
+	
         gimbal_control_pub_.publish(gimbal_control_msg);
-        
+
         std_msgs::Float32MultiArray target_vectoring_force_msg;
         target_vectoring_f_ = target_vectoring_f_trans_ + target_vectoring_f_rot_;
         for(int i = 0; i < target_vectoring_f_.size(); i++){

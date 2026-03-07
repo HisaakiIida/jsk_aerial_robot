@@ -22,6 +22,8 @@
   <arg name="config_dir" default="$(find dragon)/config/$(arg type)" />
   <arg name="mujoco" default="False" />
   <arg name="demo" default="True" />
+  <arg name="publish_initial_spine_pose" default="true" />
+  <arg name="initial_spine_angle" default="0.0" />
 
   ###########  UAV Config  ###########
   <group ns="$(arg robot_ns)">
@@ -59,6 +61,11 @@
     ###########  Navigation ###########
     <param name="flight_navigation_plugin_name" value="aerial_robot_navigation/dragon_navigation" />
     <rosparam file="$(arg config_dir)/NavigationConfig.yaml" command="load" />
+
+    ###########  Spine move ###########
+    <param name="controller/publish_initial_spine_pose" value="$(arg publish_initial_spine_pose)" />
+    <param name="controller/initial_spine_angle" value="$(arg initial_spine_angle)" />
+
   </group>
 
   ###########  Base Platform  ###########

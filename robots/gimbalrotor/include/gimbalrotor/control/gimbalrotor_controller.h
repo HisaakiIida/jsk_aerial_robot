@@ -51,6 +51,11 @@ namespace aerial_robot_control
     bool underactuate_;
     double target_roll_ = 0.0, target_pitch_ = 0.0;
 
+    // spine element
+    bool publish_initial_spine_pose_;
+    double initial_spine_angle_;
+    double initial_act_unit_angle_;
+    
     void rosParamInit();
     bool update() override;
     virtual void reset() override;
@@ -61,5 +66,11 @@ namespace aerial_robot_control
     void sendTorqueAllocationMatrixInv();
     void setAttitudeGains();
 
+    // spine element
+    void publishInitialJointPose();
+    void appendSpineAndActUnitJoints(sensor_msgs::JointState& msg,
+                                 double act_unit_angle,
+                                 double spine_angle);
+    
   };
 };

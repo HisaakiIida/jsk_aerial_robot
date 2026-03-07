@@ -49,6 +49,7 @@ namespace aerial_robot_control
     int rotor_coef_;
     bool gimbal_calc_in_fc_;
     bool underactuate_;
+    bool simulation_mode_;
     double target_roll_ = 0.0, target_pitch_ = 0.0;
 
     void rosParamInit();

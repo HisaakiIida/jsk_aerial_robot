@@ -21,6 +21,9 @@
   <arg name="robot_id" default="" />
   <arg name="robot_ns" value="gryllo$(arg robot_id)" />
   <arg name="airframe" default="gryllo" />
+  <arg name="publish_initial_spine_pose" default="true" />
+  <arg name="initial_spine_angle" default="0.3" />
+  <arg name="initial_act_unit_angle" default="0.0" />
 
   ###########  Parameters  ###########
   <group ns="$(arg robot_ns)">
@@ -39,7 +42,8 @@
    <rosparam file="$(arg config_dir)/MotorInfo.yaml" command="load" />
 
    ###########  Servo Config  ###########
-   <rosparam file="$(arg config_dir)/$(arg airframe)/Servo.yaml" command="load"/>
+   <rosparam file="$(arg config_dir)/$(arg airframe)/Servo_real.yaml" command="load" unless="$(arg simulation)"/>
+   <rosparam file="$(arg config_dir)/$(arg airframe)/Servo_sim.yaml" command="load" if="$(arg simulation)"/>
 
    ###########  Battery Config  ###########
    <rosparam file="$(arg config_dir)/Battery.yaml" command="load" />
@@ -56,6 +60,11 @@
    <param name="flight_navigation_plugin_name" value="aerial_robot_navigation/gimbalrotor_navigation" />
    <rosparam file="$(arg config_dir)/NavigationConfig.yaml" command="load" />
 
+   ###########  Spine elements ###########
+   <param name="controller/publish_initial_spine_pose" value="$(arg publish_initial_spine_pose)" />
+   <param name="controller/initial_spine_angle" value="$(arg initial_spine_angle)" />
+   <param name="controller/initial_act_unit_angle" value="$(arg initial_act_unit_angle)" />
+   
   </group>
 
   ###########  Base Platform  ###########
@@ -77,7 +86,7 @@
     <arg name="need_joint_state" value="false" if ="$(eval arg('simulation') or arg('real_machine'))"/>
   </include >
 
-  ##########  Sensors  ##########
+  ###########  Sensors  ###########
   <include file="$(find gryllo)/launch/include/sensors.launch.xml" >
     <arg name="real_machine" value="$(arg real_machine)" />
     <arg name="simulation" value="$(arg simulation)" />
