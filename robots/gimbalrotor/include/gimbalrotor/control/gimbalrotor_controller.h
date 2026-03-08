@@ -50,11 +50,6 @@ namespace aerial_robot_control
     bool gimbal_calc_in_fc_;
     bool underactuate_;
     double target_roll_ = 0.0, target_pitch_ = 0.0;
-
-    // spine element
-    bool publish_initial_spine_pose_;
-    double initial_spine_angle_;
-    double initial_act_unit_angle_;
     
     void rosParamInit();
     bool update() override;
@@ -67,10 +62,19 @@ namespace aerial_robot_control
     void setAttitudeGains();
 
     // spine element
+    bool publish_initial_spine_pose_;
+    double initial_spine_angle_;
+    double initial_act_unit_angle_;
+
+    ros::Subscriber manual_spine_joints_sub_;
+    double manual_act_unit_angle_;
+    double manual_spine_angle_;
+    bool manual_spine_joints_received_;
+    
     void publishInitialJointPose();
     void appendSpineAndActUnitJoints(sensor_msgs::JointState& msg,
                                  double act_unit_angle,
                                  double spine_angle);
-    
+    void manualSpineJointsCallback(const sensor_msgs::JointStateConstPtr& msg);
   };
 };

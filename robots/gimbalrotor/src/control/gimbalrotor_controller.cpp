@@ -35,6 +35,14 @@ namespace aerial_robot_control
     rpy_gain_pub_ = nh_.advertise<spinal::RollPitchYawTerms>("rpy/gain", 1);
     torque_allocation_matrix_inv_pub_ = nh_.advertise<spinal::TorqueAllocationMatrixInv>("torque_allocation_matrix_inv", 1);
     gimbal_dof_pub_ = nh_.advertise<std_msgs::UInt8>("gimbal_dof", 1);
+
+    // spine element
+    manual_act_unit_angle_ = initial_act_unit_angle_;
+    manual_spine_angle_ = initial_spine_angle_;
+    manual_spine_joints_received_ = false;
+    manual_spine_joints_sub_ =
+      nh_.subscribe("manual_spine_joints_ctrl", 1,
+		    &GimbalrotorController::manualSpineJointsCallback, this);
   }
 
   void GimbalrotorController::reset()
@@ -256,7 +264,7 @@ namespace aerial_robot_control
     msg.position.push_back(act_unit_angle);
     
     msg.name.push_back("act_unit_joint_2");
-    msg.position.push_back(act_unit_angle);
+    msg.position.push_back(-act_unit_angle);
     
     msg.name.push_back("spine_joint_1");
     msg.position.push_back(spine_angle);
@@ -277,6 +285,28 @@ namespace aerial_robot_control
     msg.position.push_back(spine_angle);
   }
 
+  void GimbalrotorController::manualSpineJointsCallback(const sensor_msgs::JointStateConstPtr& msg)
+  {
+    bool updated = false;
+    for(size_t i = 0; i < msg->name.size() && i < msg->position.size(); ++i)
+      {
+	const std::string& joint_name = msg->name[i];
+	const double joint_pos = msg->position[i];	
+	if(joint_name == "act_unit_joint_1")
+	  {
+	    manual_act_unit_angle_ = joint_pos;
+	    updated = true;
+	  }
+	else if(joint_name == "spine_joint_1")
+	  {
+	    manual_spine_angle_ = joint_pos;
+	    updated = true;
+	  }
+      }
+    if(updated)
+      manual_spine_joints_received_ = true;
+  }
+  
   void GimbalrotorController::publishInitialJointPose()
   {
     sensor_msgs::JointState gimbal_control_msg;
@@ -331,7 +361,7 @@ namespace aerial_robot_control
             }
         }
 
-	appendSpineAndActUnitJoints(gimbal_control_msg, initial_act_unit_angle_, initial_spine_angle_);
+	appendSpineAndActUnitJoints(gimbal_control_msg, manual_act_unit_angle_, manual_spine_angle_);
         gimbal_control_pub_.publish(gimbal_control_msg);
 
         std_msgs::Float32MultiArray target_vectoring_force_msg;

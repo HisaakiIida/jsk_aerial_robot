@@ -76,7 +76,7 @@ if __name__ == "__main__":
     force_landing_pub = rospy.Publisher(ns + '/force_landing', Empty, queue_size=1)
     nav_pub = rospy.Publisher(robot_ns + '/uav/nav', FlightNav, queue_size=1)
 
-    joint_pub = rospy.Publisher(robot_ns + '/manual_gimbals_ctrl', JointState, queue_size=1)
+    joint_pub = rospy.Publisher(robot_ns + '/manual_spine_joints_ctrl', JointState, queue_size=1)
 
     xy_vel = rospy.get_param("~xy_vel", 0.2)
     z_vel = rospy.get_param("~z_vel", 0.2)
@@ -211,15 +211,25 @@ if __name__ == "__main__":
                 js.header.stamp = rospy.Time.now()
 
                 js.name = [
-                    "act_unit_joint_1",
-                    "act_unit_joint_2",
-                    "spine_joint_1",
+                        "act_unit_joint_1",
+                        "act_unit_joint_2",
+                        "spine_joint_1",
+                        "spine_joint_2",
+                        "spine_joint_3",
+                        "spine_joint_4",
+                        "spine_joint_5",
+                        "spine_joint_6",
                 ]
-
+                
                 js.position = [
-                    act_val,
-                    -act_val,
-                    spine_val,
+                        act_val,
+                        -act_val,
+                        spine_val,
+                        spine_val,
+                        spine_val,
+                        spine_val,
+                        spine_val,
+                        spine_val,
                 ]
 
                 joint_pub.publish(js)
