@@ -54,7 +54,47 @@ servo_controller:
 
     controller7:
       id: 6
+      name: spine_joint_1
+      simulation:
+        pid: {p: 50.0, i: 0.1, d: 2.0, i_clamp_max: 2.0, i_clamp_min: -2.0}
+        init_value: 0
+        type: effort_controllers/JointPositionController
+
+    controller8:
+      id: 7
+      name: spine_joint_2
+      simulation:
+        pid: {p: 50.0, i: 0.1, d: 2.0, i_clamp_max: 2.0, i_clamp_min: -2.0}
+        init_value: 0
+        type: effort_controllers/JointPositionController
+
+    controller9:
+      id: 8
       name: spine_joint_3
+      simulation:
+        pid: {p: 50.0, i: 0.1, d: 2.0, i_clamp_max: 2.0, i_clamp_min: -2.0}
+        init_value: 0
+        type: effort_controllers/JointPositionController
+
+    controller10:
+      id: 9
+      name: spine_joint_4
+      simulation:
+        pid: {p: 50.0, i: 0.1, d: 2.0, i_clamp_max: 2.0, i_clamp_min: -2.0}
+        init_value: 0
+        type: effort_controllers/JointPositionController
+
+    controller11:
+      id: 10
+      name: spine_joint_5
+      simulation:
+        pid: {p: 50.0, i: 0.1, d: 2.0, i_clamp_max: 2.0, i_clamp_min: -2.0}
+        init_value: 0
+        type: effort_controllers/JointPositionController
+
+    controller12:
+      id: 11
+      name: spine_joint_6
       simulation:
         pid: {p: 50.0, i: 0.1, d: 2.0, i_clamp_max: 2.0, i_clamp_min: -2.0}
         init_value: 0

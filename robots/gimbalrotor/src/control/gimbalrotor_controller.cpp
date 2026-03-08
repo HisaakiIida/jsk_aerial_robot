@@ -1,3 +1,4 @@
+
 #include <gimbalrotor/control/gimbalrotor_controller.h>
 
 using namespace std;
@@ -59,7 +60,7 @@ namespace aerial_robot_control
   {
     if(!gimbal_calc_in_fc_ && publish_initial_spine_pose_ && !start_rp_integration_)
       {
-	ROS_INFO_THROTTLE(1.0, "publishing initial spine pose from update()");
+	// ROS_INFO_THROTTLE(1.0, "publishing initial spine pose from update()");
 	publishInitialJointPose();
       }
     
@@ -257,23 +258,23 @@ namespace aerial_robot_control
     msg.name.push_back("act_unit_joint_2");
     msg.position.push_back(act_unit_angle);
     
-    // msg.name.push_back("spine_joint_1");
-    // msg.position.push_back(spine_angle);
+    msg.name.push_back("spine_joint_1");
+    msg.position.push_back(spine_angle);
     
-    // msg.name.push_back("spine_joint_2");
-    // msg.position.push_back(spine_angle);
+    msg.name.push_back("spine_joint_2");
+    msg.position.push_back(spine_angle);
     
     msg.name.push_back("spine_joint_3");
     msg.position.push_back(spine_angle);
     
-    // msg.name.push_back("spine_joint_4");
-    // msg.position.push_back(spine_angle);
+    msg.name.push_back("spine_joint_4");
+    msg.position.push_back(spine_angle);
     
-    // msg.name.push_back("spine_joint_5");
-    // msg.position.push_back(spine_angle);
+    msg.name.push_back("spine_joint_5");
+    msg.position.push_back(spine_angle);
     
-    // msg.name.push_back("spine_joint_6");
-    // msg.position.push_back(spine_angle);
+    msg.name.push_back("spine_joint_6");
+    msg.position.push_back(spine_angle);
   }
 
   void GimbalrotorController::publishInitialJointPose()
