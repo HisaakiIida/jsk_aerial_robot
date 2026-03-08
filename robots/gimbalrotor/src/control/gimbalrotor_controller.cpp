@@ -50,17 +50,27 @@ namespace aerial_robot_control
     getParam<bool>(control_nh, "gimbal_calc_in_fc", gimbal_calc_in_fc_, true);
     getParam<bool>(control_nh, "hovering_approximate", hovering_approximate_, false);
     getParam<bool>(control_nh, "underactuate", underactuate_, false);
+    getParam<bool>(control_nh, "publish_initial_spine_pose", publish_initial_spine_pose_, false);
+    getParam<double>(control_nh, "initial_spine_angle", initial_spine_angle_, 0.0);
+    getParam<double>(control_nh, "initial_act_unit_angle", initial_act_unit_angle_, 0.0);
   }
 
   bool GimbalrotorController::update()
   {
+    if(!gimbal_calc_in_fc_ && publish_initial_spine_pose_ && !start_rp_integration_)
+      {
+	ROS_INFO_THROTTLE(1.0, "publishing initial spine pose from update()");
+	publishInitialJointPose();
+      }
+    
     sendGimbalCommand();
+    
     if(gimbal_calc_in_fc_){
       std_msgs::UInt8 msg;
       msg.data = gimbal_dof_;
       gimbal_dof_pub_.publish(msg);
     }
-
+    
     return PoseLinearController::update();
   }
 
@@ -237,10 +247,64 @@ namespace aerial_robot_control
     }
   }
 
+  void GimbalrotorController::appendSpineAndActUnitJoints(sensor_msgs::JointState& msg,
+							  double act_unit_angle,
+							  double spine_angle)
+  {
+    msg.name.push_back("act_unit_joint_1");
+    msg.position.push_back(act_unit_angle);
+    
+    msg.name.push_back("act_unit_joint_2");
+    msg.position.push_back(act_unit_angle);
+    
+    // msg.name.push_back("spine_joint_1");
+    // msg.position.push_back(spine_angle);
+    
+    // msg.name.push_back("spine_joint_2");
+    // msg.position.push_back(spine_angle);
+    
+    msg.name.push_back("spine_joint_3");
+    msg.position.push_back(spine_angle);
+    
+    // msg.name.push_back("spine_joint_4");
+    // msg.position.push_back(spine_angle);
+    
+    // msg.name.push_back("spine_joint_5");
+    // msg.position.push_back(spine_angle);
+    
+    // msg.name.push_back("spine_joint_6");
+    // msg.position.push_back(spine_angle);
+  }
+
+  void GimbalrotorController::publishInitialJointPose()
+  {
+    sensor_msgs::JointState gimbal_control_msg;
+    gimbal_control_msg.header.stamp = ros::Time::now();
+    
+    for(int i = 0; i < motor_num_; i++){
+      if(gimbal_dof_ == 1)
+	{
+	  gimbal_control_msg.name.push_back("gimbal" + std::to_string(i + 1));
+	  gimbal_control_msg.position.push_back(0.0);
+	}
+      else if(gimbal_dof_ == 2)
+	{
+	  gimbal_control_msg.name.push_back("gimbal" + std::to_string(i + 1) + "_roll");
+	  gimbal_control_msg.position.push_back(0.0);
+	  
+	  gimbal_control_msg.name.push_back("gimbal" + std::to_string(i + 1) + "_pitch");
+	  gimbal_control_msg.position.push_back(0.0);
+	}
+    }
+    
+    appendSpineAndActUnitJoints(gimbal_control_msg, initial_act_unit_angle_, initial_spine_angle_);
+    
+    gimbal_control_pub_.publish(gimbal_control_msg);
+  }
+  
   void GimbalrotorController::sendCmd()
   {
     PoseLinearController::sendCmd();
-
     sendFourAxisCommand();
 
     if(gimbal_calc_in_fc_){
@@ -248,31 +312,6 @@ namespace aerial_robot_control
       setAttitudeGains();
     }
     else
-      // {
-      //   sensor_msgs::JointState gimbal_control_msg;
-      //   gimbal_control_msg.header.stamp = ros::Time::now();
-      //   for(int i = 0; i < motor_num_; i++){
-      //     if(gimbal_dof_ == 1)
-      //       {
-      //         gimbal_control_msg.position.push_back(target_gimbal_angles_.at(i));
-      //       }
-      //     else if(gimbal_dof_ == 2)
-      //       {
-      //         gimbal_control_msg.position.push_back(target_gimbal_angles_.at(2*i));
-      //         gimbal_control_msg.position.push_back(target_gimbal_angles_.at(2*i + 1));
-      //       }
-      //   }
-      
-      //   gimbal_control_pub_.publish(gimbal_control_msg);        
-
-      //   std_msgs::Float32MultiArray target_vectoring_force_msg;
-      //   target_vectoring_f_ = target_vectoring_f_trans_ + target_vectoring_f_rot_;
-      //   for(int i = 0; i < target_vectoring_f_.size(); i++){
-      //     target_vectoring_force_msg.data.push_back(target_vectoring_f_(i));
-      //   }
-      //   target_vectoring_force_pub_.publish(target_vectoring_force_msg);
-        
-      // }
       {
         sensor_msgs::JointState gimbal_control_msg;
         gimbal_control_msg.header.stamp = ros::Time::now();
@@ -291,22 +330,7 @@ namespace aerial_robot_control
             }
         }
 
-	gimbal_control_msg.name.push_back("act_unit_joint_1");
-	gimbal_control_msg.position.push_back(0.0);
-
-	gimbal_control_msg.name.push_back("act_unit_joint_2");
-	gimbal_control_msg.position.push_back(0.0);
-
-	gimbal_control_msg.name.push_back("spine_joint_1");
-	gimbal_control_msg.position.push_back(0.0);
-
-	// ROS_INFO("gimbals_ctrl: names=%zu, pos=%zu",
-        //   gimbal_control_msg.name.size(),
-        //   gimbal_control_msg.position.size());
-
-	// for(size_t i = 0; i < gimbal_control_msg.name.size(); ++i)
-	//   ROS_INFO("name[%zu]=%s", i, gimbal_control_msg.name[i].c_str());
-	
+	appendSpineAndActUnitJoints(gimbal_control_msg, initial_act_unit_angle_, initial_spine_angle_);
         gimbal_control_pub_.publish(gimbal_control_msg);
 
         std_msgs::Float32MultiArray target_vectoring_force_msg;

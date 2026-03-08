@@ -226,15 +226,15 @@
     <!--   <mimic joint="spine_joint_1" multiplier="1.0" offset="0.0"/> -->
     <!-- </joint> -->
 
-    <joint name="spine_joint_5" type="revolute">
-      <parent link="spine_4"/>
-      <child link="spine_5"/>
-      <origin xyz="${pitch} 0 0" rpy="0 0 0"/>
-      <axis xyz="0 0 1"/>
-      <limit lower="-0.52" upper="0.52" effort="5.0" velocity="2.0"/>
-      <dynamics damping="10.0" friction="0.0"/>
-      <mimic joint="spine_joint_1" multiplier="1.0" offset="0.0"/>
-    </joint>
+    <!-- <joint name="spine_joint_5" type="revolute"> -->
+    <!--   <parent link="spine_4"/> -->
+    <!--   <child link="spine_5"/> -->
+    <!--   <origin xyz="${pitch} 0 0" rpy="0 0 0"/> -->
+    <!--   <axis xyz="0 0 1"/> -->
+    <!--   <limit lower="-0.52" upper="0.52" effort="5.0" velocity="2.0"/> -->
+    <!--   <dynamics damping="10.0" friction="0.0"/> -->
+    <!--   <mimic joint="spine_joint_1" multiplier="1.0" offset="0.0"/> -->
+    <!-- </joint> -->
 
     <!-- <joint name="spine_joint_6" type="revolute"> -->
     <!--   <parent link="spine_5"/> -->
@@ -282,14 +282,14 @@
       <dynamics damping="1.0" friction="0.0"/>
     </joint>
 
-    <!-- <joint name="spine_joint_5" type="fixed"> -->
-    <!--   <parent link="spine_4"/> -->
-    <!--   <child link="spine_5"/> -->
-    <!--   <origin xyz="${pitch} 0 0" rpy="0 0 0"/> -->
-    <!--   <axis xyz="0 0 1"/> -->
-    <!--   <limit lower="-0.52" upper="0.52" effort="5.0" velocity="2.0"/> -->
-    <!--   <dynamics damping="1.0" friction="0.0"/> -->
-    <!-- </joint> -->
+    <joint name="spine_joint_5" type="fixed">
+      <parent link="spine_4"/>
+      <child link="spine_5"/>
+      <origin xyz="${pitch} 0 0" rpy="0 0 0"/>
+      <axis xyz="0 0 1"/>
+      <limit lower="-0.52" upper="0.52" effort="5.0" velocity="2.0"/>
+      <dynamics damping="1.0" friction="0.0"/>
+    </joint>
 
     <joint name="spine_joint_6" type="fixed">
       <parent link="spine_5"/>
@@ -345,16 +345,16 @@
     <!--   </actuator> -->
     <!-- </transmission> -->
 
-    <transmission name="spine_tran_5">
-      <type>transmission_interface/SimpleTransmission</type>
-      <joint name="spine_joint_5">
-	<hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
-      </joint>
-      <actuator name="spine_servo_5">
-	<hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
-	<mechanicalReduction>1</mechanicalReduction>
-      </actuator>
-    </transmission>
+    <!-- <transmission name="spine_tran_5"> -->
+    <!--   <type>transmission_interface/SimpleTransmission</type> -->
+    <!--   <joint name="spine_joint_5"> -->
+    <!-- 	<hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface> -->
+    <!--   </joint> -->
+    <!--   <actuator name="spine_servo_5"> -->
+    <!-- 	<hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface> -->
+    <!-- 	<mechanicalReduction>1</mechanicalReduction> -->
+    <!--   </actuator> -->
+    <!-- </transmission> -->
 
     <!-- <transmission name="spine_tran_6"> -->
     <!--   <type>transmission_interface/SimpleTransmission</type> -->

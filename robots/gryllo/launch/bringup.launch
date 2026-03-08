@@ -21,8 +21,10 @@
   <arg name="robot_id" default="" />
   <arg name="robot_ns" value="gryllo$(arg robot_id)" />
   <arg name="airframe" default="gryllo" />
+
+  <!-- spine element -->
   <arg name="publish_initial_spine_pose" default="true" />
-  <arg name="initial_spine_angle" default="0.3" />
+  <arg name="initial_spine_angle" default="1.0" />
   <arg name="initial_act_unit_angle" default="0.0" />
 
   ###########  Parameters  ###########
