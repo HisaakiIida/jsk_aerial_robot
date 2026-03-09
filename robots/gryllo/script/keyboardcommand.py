@@ -90,7 +90,7 @@ if __name__ == "__main__":
     spine_max = rospy.get_param("~spine_max", 0.52)
 
     initial_act = rospy.get_param("~initial_act", 0.0)
-    initial_spine = rospy.get_param("~initial_spine", 0.1)
+    initial_spine = rospy.get_param("~initial_spine", 0.0)
 
     act_val = initial_act
     spine_val = initial_spine
@@ -233,6 +233,15 @@ if __name__ == "__main__":
                 ]
 
                 joint_pub.publish(js)
+
+                # finaltargetlinkrot controller
+                if key in ['u', 'i', 'c']:
+                        roll_nav_msg = FlightNav()
+                        roll_nav_msg.control_frame = FlightNav.WORLD_FRAME
+                        roll_nav_msg.target = FlightNav.COG
+                        roll_nav_msg.roll_nav_mode = 2
+                        roll_nav_msg.target_roll = act_val
+                        nav_pub.publish(roll_nav_msg)
 
             printMsg(msg)
             rospy.sleep(0.001)

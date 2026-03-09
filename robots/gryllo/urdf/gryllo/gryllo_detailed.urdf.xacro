@@ -4,6 +4,56 @@
   <xacro:arg name="min_force" default="-30.0"/>
   <xacro:arg name="max_force" default="30.0"/>
 
+  <!-- spine macro -->
+  <xacro:macro name="gryllo_spine_link" params="name">
+    <link name="${name}">
+      <inertial>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <mass value="0.03000"/>
+        <inertia ixx="0.00001" iyy="0.00004" izz="0.00003"
+                 ixy="0.00000" ixz="0.00001" iyz="0.00000"/>
+      </inertial>
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <mesh filename="package://gryllo/urdf/gryllo/mesh/detailed/spine_single_joints.STL"/>
+        </geometry>
+      </visual>
+    </link>
+    <xacro:damping_factor link="${name}"/>
+  </xacro:macro>
+  <xacro:macro name="gryllo_spine_joint" params="joint_name parent child xyz mimic:=false">
+    <joint name="${joint_name}" type="revolute">
+      <parent link="${parent}"/>
+      <child link="${child}"/>
+      <origin xyz="${xyz}" rpy="0 0 0"/>
+      <axis xyz="0 0 1"/>
+      <limit lower="-0.52" upper="0.52" effort="5.0" velocity="2.0"/>
+      <dynamics damping="10.0" friction="0.0"/>
+      <xacro:if value="${mimic}">
+        <mimic joint="spine_joint_1" multiplier="1.0" offset="0.0"/>
+      </xacro:if>
+    </joint>
+  </xacro:macro>
+  <xacro:macro name="trans_ref_block" params="transmission_name joint_name actuator_name">
+    <transmission name="${transmission_name}">
+      <type>transmission_interface/SimpleTransmission</type>
+      <joint name="${joint_name}">
+	<hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+      </joint>
+      <actuator name="${actuator_name}">
+	<hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+	<mechanicalReduction>1</mechanicalReduction>
+      </actuator>
+    </transmission>
+    <gazebo reference="${joint_name}">
+      <implicitSpringDamper>true</implicitSpringDamper>
+      <springStiffness>1.0</springStiffness>
+      <springReference>0.0</springReference>
+    </gazebo>
+  </xacro:macro>
+  
+  <!-- gimbals and other links macro -->
   <xacro:macro name="gryllo_center_link_with_spine" params="child1 child2 child3 child4 pitch">
     ## dummy ##
     <link name="root">
@@ -78,6 +128,7 @@
         </geometry>
       </visual>
     </link>
+    <xacro:damping_factor link="act_unit_1"/>    
 
     #### front act unit ####
     <link name="act_unit_2">
@@ -109,240 +160,28 @@
       <origin xyz="0.11520 0.00001 0.04759" rpy="0 0 0"/>
     </joint>
 
-    #### spine links 1-5 ####
-    <link name="spine_1">
-      <inertial>
-	<origin xyz="0 0 0" rpy="0 0 0"/>
-	<mass value="0.03000"/>
-	<inertia ixx="0.00001" iyy="0.00004" izz="0.00003" ixy="0.00000" ixz="0.00001" iyz="0.00000"/>
-      </inertial>
-      <visual>
-	<origin xyz="0 0 0" rpy="0 0 0"/>
-	<geometry>
-	  <mesh filename="package://gryllo/urdf/gryllo/mesh/detailed/spine_single_joints.STL"/>
-	</geometry>
-      </visual>
-    </link>
-    <xacro:damping_factor link="spine_1"/>
-
-    <link name="spine_2">
-      <inertial>
-	<origin xyz="0 0 0" rpy="0 0 0"/>
-	<mass value="0.03000"/>
-	<inertia ixx="0.00001" iyy="0.00004" izz="0.00003" ixy="0.00000" ixz="0.00001" iyz="0.00000"/>
-      </inertial>
-      <visual>
-	<origin xyz="0 0 0" rpy="0 0 0"/>
-	<geometry>
-	  <mesh filename="package://gryllo/urdf/gryllo/mesh/detailed/spine_single_joints.STL"/>
-	</geometry>
-      </visual>
-    </link>
-    <xacro:damping_factor link="spine_2"/>
-
-    <link name="spine_3">
-      <inertial>
-	<origin xyz="0 0 0" rpy="0 0 0"/>
-	<mass value="0.03000"/>
-	<inertia ixx="0.00001" iyy="0.00004" izz="0.00003" ixy="0.00000" ixz="0.00001" iyz="0.00000"/>
-      </inertial>
-      <visual>
-	<origin xyz="0 0 0" rpy="0 0 0"/>
-	<geometry>
-	  <mesh filename="package://gryllo/urdf/gryllo/mesh/detailed/spine_single_joints.STL"/>
-	</geometry>
-      </visual>
-    </link>
-    <xacro:damping_factor link="spine_3"/>
-
-    <link name="spine_4">
-      <inertial>
-	<origin xyz="0 0 0" rpy="0 0 0"/>
-	<mass value="0.03000"/>
-	<inertia ixx="0.00001" iyy="0.00004" izz="0.00003" ixy="0.00000" ixz="0.00001" iyz="0.00000"/>
-      </inertial>
-      <visual>
-	<origin xyz="0 0 0" rpy="0 0 0"/>
-	<geometry>
-	  <mesh filename="package://gryllo/urdf/gryllo/mesh/detailed/spine_single_joints.STL"/>
-	</geometry>
-      </visual>
-    </link>
-    <xacro:damping_factor link="spine_4"/>
-
-    <link name="spine_5">
-      <inertial>
-	<origin xyz="0 0 0" rpy="0 0 0"/>
-	<mass value="0.03000"/>
-	<inertia ixx="0.00001" iyy="0.00004" izz="0.00003" ixy="0.00000" ixz="0.00001" iyz="0.00000"/>
-      </inertial>
-      <visual>
-	<origin xyz="0 0 0" rpy="0 0 0"/>
-	<geometry>
-	  <mesh filename="package://gryllo/urdf/gryllo/mesh/detailed/spine_single_joints.STL"/>
-	</geometry>
-      </visual>
-    </link>
-    <xacro:damping_factor link="spine_5"/>
-
-    ## joints ##
+    ## spine ##
+    #### links ####
+    <xacro:gryllo_spine_link name="spine_1"/>
+    <xacro:gryllo_spine_link name="spine_2"/>
+    <xacro:gryllo_spine_link name="spine_3"/>
+    <xacro:gryllo_spine_link name="spine_4"/>
+    <xacro:gryllo_spine_link name="spine_5"/>
     #### spine joints ####
-    <joint name="spine_joint_1" type="revolute">
-      <parent link="act_unit"/>
-      <child link="spine_1"/>
-      <origin xyz="0.19432 0.0 0.01373" rpy="0 0 0"/>
-      <axis xyz="0 0 1"/>
-      <limit lower="-0.52" upper="0.52" effort="5.0" velocity="2.0"/>
-      <dynamics damping="10.0" friction="0.0"/>
-    </joint>
-
-    <joint name="spine_joint_2" type="revolute">
-      <parent link="spine_1"/>
-      <child link="spine_2"/>
-      <origin xyz="${pitch} 0 0" rpy="0 0 0"/>
-      <axis xyz="0 0 1"/>
-      <limit lower="-0.52" upper="0.52" effort="5.0" velocity="2.0"/>
-      <dynamics damping="10.0" friction="0.0"/>
-      <mimic joint="spine_joint_1" multiplier="1.0" offset="0.0"/>
-    </joint>
-
-    <joint name="spine_joint_3" type="revolute">
-      <parent link="spine_2"/>
-      <child link="spine_3"/>
-      <origin xyz="${pitch} 0 0" rpy="0 0 0"/>
-      <axis xyz="0 0 1"/>
-      <limit lower="-0.52" upper="0.52" effort="5.0" velocity="2.0"/>
-      <dynamics damping="20.0" friction="2.0"/>
-      <mimic joint="spine_joint_1" multiplier="1.0" offset="0.0"/>
-    </joint>
-
-    <joint name="spine_joint_4" type="revolute">
-      <parent link="spine_3"/>
-      <child link="spine_4"/>
-      <origin xyz="${pitch} 0 0" rpy="0 0 0"/>
-      <axis xyz="0 0 1"/>
-      <limit lower="-0.52" upper="0.52" effort="5.0" velocity="2.0"/>
-      <dynamics damping="10.0" friction="0.0"/>
-      <mimic joint="spine_joint_1" multiplier="1.0" offset="0.0"/>
-    </joint>
-
-    <joint name="spine_joint_5" type="revolute">
-      <parent link="spine_4"/>
-      <child link="spine_5"/>
-      <origin xyz="${pitch} 0 0" rpy="0 0 0"/>
-      <axis xyz="0 0 1"/>
-      <limit lower="-0.52" upper="0.52" effort="5.0" velocity="2.0"/>
-      <dynamics damping="10.0" friction="0.0"/>
-      <mimic joint="spine_joint_1" multiplier="1.0" offset="0.0"/>
-    </joint>
-
-    <joint name="spine_joint_6" type="revolute">
-      <parent link="spine_5"/>
-      <child link="act_unit_2"/>
-      <origin xyz="${pitch} 0 0" rpy="0 0 0"/>
-      <axis xyz="0 0 1"/>
-      <limit lower="-0.52" upper="0.52" effort="5.0" velocity="2.0"/>
-      <dynamics damping="10.0" friction="0.0"/>
-      <mimic joint="spine_joint_1" multiplier="1.0" offset="0.0"/>
-    </joint>
-
-    #### transmissions ####
-    <transmission name="spine_tran_1">
-      <type>transmission_interface/SimpleTransmission</type>
-      <joint name="spine_joint_1">
-	<hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
-      </joint>
-      <actuator name="spine_servo_1">
-	<hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
-	<mechanicalReduction>1</mechanicalReduction>
-      </actuator>
-    </transmission>
-    <gazebo reference="spine_joint_1">
-      <implicitSpringDamper>true</implicitSpringDamper>
-      <springStiffness>1.0</springStiffness>
-      <springReference>0.0</springReference>
-    </gazebo>
+    <xacro:gryllo_spine_joint joint_name="spine_joint_1" parent="act_unit" child="spine_1" xyz="0.19432 0.0 0.01373"/>
+    <xacro:gryllo_spine_joint joint_name="spine_joint_2" parent="spine_1" child="spine_2" xyz="${pitch} 0 0" mimic="true"/>
+    <xacro:gryllo_spine_joint joint_name="spine_joint_3" parent="spine_2" child="spine_3" xyz="${pitch} 0 0" mimic="true"/>
+    <xacro:gryllo_spine_joint joint_name="spine_joint_4" parent="spine_3" child="spine_4" xyz="${pitch} 0 0" mimic="true"/>
+    <xacro:gryllo_spine_joint joint_name="spine_joint_5" parent="spine_4" child="spine_5" xyz="${pitch} 0 0" mimic="true"/>
+    <xacro:gryllo_spine_joint joint_name="spine_joint_6" parent="spine_5" child="act_unit_2" xyz="${pitch} 0 0" mimic="true"/>
+    #### transmissions and reference ####
+    <xacro:trans_ref_block transmission_name="spine_tran_1" joint_name="spine_joint_1" actuator_name="spine_servo_1"/>
+    <xacro:trans_ref_block transmission_name="spine_tran_2" joint_name="spine_joint_2" actuator_name="spine_servo_2"/>
+    <xacro:trans_ref_block transmission_name="spine_tran_3" joint_name="spine_joint_3" actuator_name="spine_servo_3"/>
+    <xacro:trans_ref_block transmission_name="spine_tran_4" joint_name="spine_joint_4" actuator_name="spine_servo_4"/>
+    <xacro:trans_ref_block transmission_name="spine_tran_5" joint_name="spine_joint_5" actuator_name="spine_servo_5"/>
+    <xacro:trans_ref_block transmission_name="spine_tran_6" joint_name="spine_joint_6" actuator_name="spine_servo_6"/>
     
-    <transmission name="spine_tran_2">
-      <type>transmission_interface/SimpleTransmission</type>
-      <joint name="spine_joint_2">
-	<hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
-      </joint>
-      <actuator name="spine_servo_2">
-	<hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
-	<mechanicalReduction>1</mechanicalReduction>
-      </actuator>
-    </transmission>
-    <gazebo reference="spine_joint_2">
-      <implicitSpringDamper>true</implicitSpringDamper>
-      <springStiffness>1.0</springStiffness>
-      <springReference>0.0</springReference>
-    </gazebo>
-
-    <transmission name="spine_tran_3">
-      <type>transmission_interface/SimpleTransmission</type>
-      <joint name="spine_joint_3">
-	<hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
-      </joint>
-      <actuator name="spine_servo_3">
-	<hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
-	<mechanicalReduction>1</mechanicalReduction>
-      </actuator>
-    </transmission>
-    <gazebo reference="spine_joint_3">
-      <implicitSpringDamper>true</implicitSpringDamper>
-      <springStiffness>1.0</springStiffness>
-      <springReference>0.0</springReference>
-    </gazebo>
-
-    <transmission name="spine_tran_4">
-      <type>transmission_interface/SimpleTransmission</type>
-      <joint name="spine_joint_4">
-	<hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
-      </joint>
-      <actuator name="spine_servo_4">
-	<hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
-	<mechanicalReduction>1</mechanicalReduction>
-      </actuator>
-    </transmission>
-    <gazebo reference="spine_joint_4">
-      <implicitSpringDamper>true</implicitSpringDamper>
-      <springStiffness>1.0</springStiffness>
-      <springReference>0.0</springReference>
-    </gazebo>
-
-    <transmission name="spine_tran_5">
-      <type>transmission_interface/SimpleTransmission</type>
-      <joint name="spine_joint_5">
-	<hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
-      </joint>
-      <actuator name="spine_servo_5">
-	<hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
-	<mechanicalReduction>1</mechanicalReduction>
-      </actuator>
-    </transmission>
-    <gazebo reference="spine_joint_5">
-      <implicitSpringDamper>true</implicitSpringDamper>
-      <springStiffness>1.0</springStiffness>
-      <springReference>0.0</springReference>
-    </gazebo>
-
-    <transmission name="spine_tran_6">
-      <type>transmission_interface/SimpleTransmission</type>
-      <joint name="spine_joint_6">
-	<hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
-      </joint>
-      <actuator name="spine_servo_6">
-	<hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
-	<mechanicalReduction>1</mechanicalReduction>
-      </actuator>
-    </transmission>
-    <gazebo reference="spine_joint_6">
-      <implicitSpringDamper>true</implicitSpringDamper>
-      <springStiffness>1.0</springStiffness>
-      <springReference>0.0</springReference>
-    </gazebo>
-
     #### rotor arms ####
     <link name="rotor_arm${child1}">
       <inertial>
@@ -401,50 +240,31 @@
 
     #### roll joints ####
     <joint name="act_unit_joint_1" type="revolute">
-      <limit effort="1.5" lower="-2.0" upper="2.0" velocity="3.0"/>
       <parent link="base_link"/>
       <child link="act_unit"/>
       <origin rpy="0 0 0" xyz="0.0 0.0 0.0"/>
       <axis xyz="1 0 0"/>
+      <limit lower="-3.13" upper="3.13" effort="5.0" velocity="1.0"/>
       <dynamics damping="0.8" friction="0.0"/>
     </joint>
-
-    <transmission name="joint_tran_5">
-      <type>transmission_interface/SimpleTransmission</type>
-      <joint name="act_unit_joint_1">
-        <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
-      </joint>
-      <actuator name="spine_rotator_1">
-        <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
-        <mechanicalReduction>1</mechanicalReduction>
-      </actuator>
-    </transmission>
+    <xacro:trans_ref_block transmission_name="spine_tran_7" joint_name="act_unit_joint_1" actuator_name="spine_rotator_1"/>
 
     <joint name="act_unit_joint_2" type="revolute">
-      <limit effort="1.5" lower="-2.0" upper="2.0" velocity="3.0"/>
       <parent link="act_unit_2"/>
       <child link="base_link_2"/>
       <origin rpy="0 0 0" xyz="0.195 0.0 -0.014"/>
       <axis xyz="1 0 0"/>
+      <limit lower="-3.13" upper="3.13" effort="5.0" velocity="1.0"/>
       <dynamics damping="0.8" friction="0.0"/>
+      <mimic joint="spine_joint_1" multiplier="-1.0" offset="0.0"/>
     </joint>
-    
-    <transmission name="joint_tran_6">
-      <type>transmission_interface/SimpleTransmission</type>
-      <joint name="act_unit_joint_2">
-        <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
-      </joint>
-      <actuator name="spine_rotator_2">
-        <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
-        <mechanicalReduction>1</mechanicalReduction>
-      </actuator>
-    </transmission>
+    <xacro:trans_ref_block transmission_name="spine_tran_8" joint_name="act_unit_joint_2" actuator_name="spine_rotator_2"/>
   </xacro:macro>
 
+  <!-- thrust link macro -->
   <xacro:macro name="gryllo_thrust_link" params="self rotor_direction">
-
-    ## link
-    #### rotor parent link (virtual) ####
+    ## link ##
+    #### gimbal link ####
     <link name="gimbal_link${self}">
       <inertial>
         <origin xyz="0 0 0" rpy="0 0 0"/>
@@ -459,7 +279,6 @@
       </visual>
     </link>
     <xacro:damping_factor link="gimbal_link${self}"/>
-
     ## rotor parent link (virtual)
     <link name="rotor_parent${self}">
       <inertial>
@@ -470,8 +289,7 @@
             iyy="0.000001" iyz="0.0"
             izz="0.000001"/>
       </inertial>
-    </link>
-    
+    </link>    
     ## thrust link (virtual)
     <link name="thrust${self}">
       <inertial>
@@ -484,8 +302,7 @@
       </inertial>
     </link>
     <xacro:damping_factor link="thrust${self}"/>
-
-    #### joints ####    
+    ## joints ##
     #### gimbal joints ####
     <joint name="gimbal${self}" type="revolute">
       <limit effort="1.5" lower="-2.0" upper="2.0" velocity="3.0"/>
@@ -495,7 +312,6 @@
       <axis xyz="1 0 0"/>
       <dynamics damping="0.8" friction="0.0"/>
     </joint>
-
     <transmission name="joint_tran${self}">
       <type>transmission_interface/SimpleTransmission</type>
       <joint name="gimbal${self}">
@@ -506,7 +322,6 @@
         <mechanicalReduction>1</mechanicalReduction>
       </actuator>
     </transmission>
-
     #### rotor parent link joint (virtual) ####
     <joint name="rotor_parent_link_joint${self}" type="fixed">
       <parent link="gimbal_link${self}"/>
@@ -514,7 +329,6 @@
       <origin rpy="0 0 0" xyz="0.0848 0.0 0.0"/>
       <axis xyz="0 0 ${rotor_direction}"/>
     </joint>
-
     #### rotor joint (virtual) ####
     <joint name="rotor${self}" type="continuous">
       <limit effort="100.0" lower="${min_force}" upper="${max_force}" velocity="0.5"/>
@@ -523,7 +337,6 @@
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <axis xyz="0 0 ${rotor_direction}"/>
     </joint>
-
     <transmission name="rotor_tran${self}">
       <type>transmission_interface/SimpleTransmission</type>
       <joint name="rotor${self}">
@@ -533,8 +346,7 @@
         <hardwareInterface>RotorInterface</hardwareInterface>
         <mechanicalReduction>1</mechanicalReduction>
       </actuator>
-    </transmission>    
-
+    </transmission>
   </xacro:macro>
 
 </robot>
