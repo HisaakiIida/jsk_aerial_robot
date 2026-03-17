@@ -1,34 +1,27 @@
 #!/usr/bin/env python
-
-from __future__ import print_function # for print function in python2
+from __future__ import print_function
 import sys, select, termios, tty
 
 import rospy
-from std_msgs.msg import Empty
+from std_msgs.msg import Empty, Float64
 from aerial_robot_msgs.msg import FlightNav
 import rosgraph
 from sensor_msgs.msg import JointState
 
-
-
-msg = """
+guide = """ 
 Instruction:
 
 ---------------------------
+r: arming motor (please do before takeoff)
+t: takeoff
+l: land
+f: force landing
+h: halt (force stop motor)
 
-r:  arming motor (please do before takeoff)
-t:  takeoff
-l:  land
-f:  force landing
-h:  halt (force stop motor)
-c:  reset joint angles
-
-     q           w           e           [          u         o
-(turn left)  (forward)  (turn right)  (move up)  (roll +) (spine +)
-
-     a           s           d           ]          i         p
-(move left)  (backward) (move right) (move down) (roll -) (spine -)
-
+     q          w           e            [         u         o 
+(turn left) (forward)  (turn right)  (move up)  (roll +) (spine +)
+     a          s           d            ]         i         p
+(move left) (backward) (move right) (move down) (roll -) (spine -)
 
 Please don't have caps lock on.
 CTRL+c to quit
@@ -36,26 +29,26 @@ CTRL+c to quit
 """
 
 def getKey():
-        tty.setraw(sys.stdin.fileno())
-        select.select([sys.stdin], [], [], 0)
-        key = sys.stdin.read(1)
-        termios.tcsetattr(sys.stdin, termios.TCSADRAIN, settings)
-        return key
+    tty.setraw(sys.stdin.fileno())
+    select.select([sys.stdin], [], [], 0)
+    key = sys.stdin.read(1)
+    termios.tcsetattr(sys.stdin, termios.TCSADRAIN, settings)
+    return key
 
-def printMsg(msg, msg_len = 50):
-        print(msg.ljust(msg_len) + "\r", end="")
+def printMsg(msg, msg_len=50):
+    print(msg.ljust(msg_len) + "\r", end="")
 
 def clamp(x, x_min, x_max):
     return max(x_min, min(x, x_max))
-        
+
 if __name__ == "__main__":
     settings = termios.tcgetattr(sys.stdin)
 
     rospy.init_node("keyboard_spine_command")
     robot_ns = rospy.get_param("~robot_ns", "")
 
-    print(msg)
-
+    print(guide)
+    
     if not robot_ns:
         master = rosgraph.Master('/rostopic')
         try:
@@ -77,22 +70,24 @@ if __name__ == "__main__":
     nav_pub = rospy.Publisher(robot_ns + '/uav/nav', FlightNav, queue_size=1)
 
     joint_pub = rospy.Publisher(robot_ns + '/manual_spine_joints_ctrl', JointState, queue_size=1)
+    roll_pub = rospy.Publisher(robot_ns + '/manual_body_roll_ctrl', Float64, queue_size=1)
 
     xy_vel = rospy.get_param("~xy_vel", 0.2)
     z_vel = rospy.get_param("~z_vel", 0.2)
     yaw_vel = rospy.get_param("~yaw_vel", 0.2)
 
-    joint_step = rospy.get_param("~joint_step", 0.02)
+    roll_step = rospy.get_param("~roll_step", 0.02)
+    roll_min = rospy.get_param("~roll_min", -1.56)
+    roll_max = rospy.get_param("~roll_max", 1.56)
 
-    act_unit_min = rospy.get_param("~act_unit_min", -2.0)
-    act_unit_max = rospy.get_param("~act_unit_max", 2.0)
+    spine_step = rospy.get_param("~spine_step", 0.02)
     spine_min = rospy.get_param("~spine_min", -0.52)
     spine_max = rospy.get_param("~spine_max", 0.52)
 
-    initial_act = rospy.get_param("~initial_act", 0.0)
+    initial_roll = rospy.get_param("~initial_roll", 0.0)
     initial_spine = rospy.get_param("~initial_spine", 0.0)
 
-    act_val = initial_act
+    roll_val = initial_roll
     spine_val = initial_spine
 
     try:
@@ -102,7 +97,6 @@ if __name__ == "__main__":
             nav_msg.target = FlightNav.COG
 
             key = getKey()
-            
             msg = ""
 
             if key == 'l':
@@ -174,29 +168,65 @@ if __name__ == "__main__":
                 msg = "send -z vel command"
 
             elif key == 'u':
-                act_val = clamp(act_val + joint_step, act_unit_min, act_unit_max)
-                msg = "act_unit_joint_1 = {:.3f}, act_unit_joint_2 = {:.3f}".format(
-                    act_val, -act_val
-                )
+                roll_val = clamp(roll_val + roll_step, roll_min, roll_max)
+                roll_pub.publish(Float64(data=roll_val))
+                msg = "target body roll = {:.3f}".format(roll_val)
 
             elif key == 'i':
-                act_val = clamp(act_val - joint_step, act_unit_min, act_unit_max)
-                msg = "act_unit_joint_1 = {:.3f}, act_unit_joint_2 = {:.3f}".format(
-                    act_val, -act_val
-                )
+                roll_val = clamp(roll_val - roll_step, roll_min, roll_max)
+                roll_pub.publish(Float64(data=roll_val))
+                msg = "target body roll = {:.3f}".format(roll_val)
 
             elif key == 'o':
-                spine_val = clamp(spine_val + joint_step, spine_min, spine_max)
+                spine_val = clamp(spine_val + spine_step, spine_min, spine_max)
+                js = JointState()
+                js.header.stamp = rospy.Time.now()
+                js.name = [
+                    "spine_joint_1",
+                    "spine_joint_2",
+                    "spine_joint_3",
+                    "spine_joint_4",
+                    "spine_joint_5",
+                    "spine_joint_6",
+                ]
+                js.position = [spine_val] * 6
+                joint_pub.publish(js)
                 msg = "spine_joint_1-6 = {:.3f}".format(spine_val)
 
             elif key == 'p':
-                spine_val = clamp(spine_val - joint_step, spine_min, spine_max)
+                spine_val = clamp(spine_val - spine_step, spine_min, spine_max)
+                js = JointState()
+                js.header.stamp = rospy.Time.now()
+                js.name = [
+                    "spine_joint_1",
+                    "spine_joint_2",
+                    "spine_joint_3",
+                    "spine_joint_4",
+                    "spine_joint_5",
+                    "spine_joint_6",
+                ]
+                js.position = [spine_val] * 6
+                joint_pub.publish(js)
                 msg = "spine_joint_1-6 = {:.3f}".format(spine_val)
 
             elif key == 'c':
-                act_val = initial_act
+                roll_val = initial_roll
                 spine_val = initial_spine
-                msg = "reset joint angles"
+                roll_pub.publish(Float64(data=roll_val))
+
+                js = JointState()
+                js.header.stamp = rospy.Time.now()
+                js.name = [
+                    "spine_joint_1",
+                    "spine_joint_2",
+                    "spine_joint_3",
+                    "spine_joint_4",
+                    "spine_joint_5",
+                    "spine_joint_6",
+                ]
+                js.position = [spine_val] * 6
+                joint_pub.publish(js)
+                msg = "reset roll and spine"
 
             elif key == '\x03':
                 break
@@ -205,43 +235,6 @@ if __name__ == "__main__":
                 printMsg("")
                 rospy.sleep(0.001)
                 continue
-
-            if key in ['u', 'i', 'o', 'p', 'c']:
-                js = JointState()
-                js.header.stamp = rospy.Time.now()
-
-                js.name = [
-                        "act_unit_joint_1",
-                        "act_unit_joint_2",
-                        "spine_joint_1",
-                        "spine_joint_2",
-                        "spine_joint_3",
-                        "spine_joint_4",
-                        "spine_joint_5",
-                        "spine_joint_6",
-                ]
-                
-                js.position = [
-                        act_val,
-                        -act_val,
-                        spine_val,
-                        spine_val,
-                        spine_val,
-                        spine_val,
-                        spine_val,
-                        spine_val,
-                ]
-
-                joint_pub.publish(js)
-
-                # finaltargetlinkrot controller
-                if key in ['u', 'i', 'c']:
-                        roll_nav_msg = FlightNav()
-                        roll_nav_msg.control_frame = FlightNav.WORLD_FRAME
-                        roll_nav_msg.target = FlightNav.COG
-                        roll_nav_msg.roll_nav_mode = 2
-                        roll_nav_msg.target_roll = act_val
-                        nav_pub.publish(roll_nav_msg)
 
             printMsg(msg)
             rospy.sleep(0.001)
