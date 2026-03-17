@@ -1,4 +1,4 @@
-xservo_controller:
+servo_controller:
   gimbals:
     angle_sgn: -1
     angle_scale: 0.001534
