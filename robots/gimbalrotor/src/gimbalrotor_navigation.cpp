@@ -1,6 +1,7 @@
 // -*- mode: c++ -*-
 
 #include <gimbalrotor/gimbalrotor_navigation.h>
+#include <std_msgs/Float64.h>
 
 using namespace aerial_robot_model;
 using namespace aerial_robot_navigation;

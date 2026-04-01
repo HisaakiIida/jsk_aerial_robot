@@ -290,9 +290,17 @@ namespace aerial_robot_control
         - body roll target
         - inverse act-unit angle
     */
+
+    // added
+    tf::Matrix3x3 fc_rot = estimator_->getOrientation(Frame::BASELINK, estimate_mode_);
+    double fc_roll, fc_pitch, fc_yaw;
+    fc_rot.getRPY(fc_roll, fc_pitch, fc_yaw);
+
     target_roll_ = manual_body_roll_;
     navigator_->setTargetRoll(target_roll_);
-    manual_act_unit_angle_ = rpy_.x();
+    // changed
+    // manual_act_unit_angle_ = rpy_.x(); 
+    manual_act_unit_angle_ = fc_roll;
   }
 
   void GimbalrotorController::appendSpineAndActUnitJoints(sensor_msgs::JointState& msg,
