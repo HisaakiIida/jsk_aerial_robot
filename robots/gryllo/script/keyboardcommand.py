@@ -20,12 +20,12 @@ l: land
 f: force landing
 h: halt (force stop motor)
 
-     q          w           e            [         u         o 
-(turn left) (forward)  (turn right)  (move up)  (roll +) (spine +)
-     a          s           d            ]         i         p
-(move left) (backward) (move right) (move down) (roll -) (spine -)
+     q          w           e            [         u         j         o
+(turn left) (forward)  (turn right)  (move up)  (roll +) (pitch +) (spine +)
+     a          s           d            ]         i         k         p
+(move left) (backward) (move right) (move down) (roll -) (pitch -) (spine -)
 
-c: reset roll/spine
+c: reset roll/pitch/spine
 
 Please don't have caps lock on.
 CTRL+c to quit
@@ -45,8 +45,8 @@ def printMsg(msg, msg_len=60):
 def clamp(x, x_min, x_max):
     return max(x_min, min(x, x_max))
 
-def publish_roll_quaternion(pub, roll_val):
-    q = tft.quaternion_from_euler(roll_val, 0.0, 0.0)
+def publish_attitude_quaternion(pub, roll_val, pitch_val):
+    q = tft.quaternion_from_euler(roll_val, pitch_val, 0.0)
 
     msg = QuaternionStamped()
     msg.header.stamp = rospy.Time.now()
@@ -111,14 +111,20 @@ if __name__ == "__main__":
     roll_min = rospy.get_param("~roll_min", -1.57)
     roll_max = rospy.get_param("~roll_max", 1.57)
 
+    pitch_step = rospy.get_param("~pitch_step", 0.02)
+    pitch_min = rospy.get_param("~pitch_min", -1.57)
+    pitch_max = rospy.get_param("~pitch_max", 1.57)
+
     spine_step = rospy.get_param("~spine_step", 0.02)
     spine_min = rospy.get_param("~spine_min", -0.52)
     spine_max = rospy.get_param("~spine_max", 0.52)
 
     initial_roll = rospy.get_param("~initial_roll", 0.0)
+    initial_pitch = rospy.get_param("~initial_pitch", 0.0)
     initial_spine = rospy.get_param("~initial_spine", 0.0)
 
     roll_val = initial_roll
+    pitch_val = initial_pitch
     spine_val = initial_spine
 
     try:
@@ -200,13 +206,23 @@ if __name__ == "__main__":
 
             elif key == 'u':
                 roll_val = clamp(roll_val + roll_step, roll_min, roll_max)
-                publish_roll_quaternion(quat_pub, roll_val)
-                msg = "send quaternion roll target = {:.3f}".format(roll_val)
+                publish_attitude_quaternion(quat_pub, roll_val, pitch_val)
+                msg = "send quaternion target roll={:.3f}, pitch={:.3f}".format(roll_val, pitch_val)
 
             elif key == 'i':
                 roll_val = clamp(roll_val - roll_step, roll_min, roll_max)
-                publish_roll_quaternion(quat_pub, roll_val)
-                msg = "send quaternion roll target = {:.3f}".format(roll_val)
+                publish_attitude_quaternion(quat_pub, roll_val, pitch_val)
+                msg = "send quaternion target roll={:.3f}, pitch={:.3f}".format(roll_val, pitch_val)
+
+            elif key == 'j':
+                pitch_val = clamp(pitch_val + pitch_step, pitch_min, pitch_max)
+                publish_attitude_quaternion(quat_pub, roll_val, pitch_val)
+                msg = "send quaternion target roll={:.3f}, pitch={:.3f}".format(roll_val, pitch_val)
+
+            elif key == 'k':
+                pitch_val = clamp(pitch_val - pitch_step, pitch_min, pitch_max)
+                publish_attitude_quaternion(quat_pub, roll_val, pitch_val)
+                msg = "send quaternion target roll={:.3f}, pitch={:.3f}".format(roll_val, pitch_val)
 
             elif key == 'o':
                 spine_val = clamp(spine_val + spine_step, spine_min, spine_max)
@@ -220,11 +236,12 @@ if __name__ == "__main__":
 
             elif key == 'c':
                 roll_val = initial_roll
+                pitch_val = initial_pitch
                 spine_val = initial_spine
 
-                publish_roll_quaternion(quat_pub, roll_val)
+                publish_attitude_quaternion(quat_pub, roll_val, pitch_val)
                 publish_spine(joint_pub, spine_val)
-                msg = "reset roll quaternion and spine"
+                msg = "reset roll, pitch and spine"
 
             elif key == '\x03':
                 break
