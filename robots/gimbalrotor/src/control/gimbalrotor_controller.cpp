@@ -38,16 +38,11 @@ namespace aerial_robot_control
     // spine / act-unit manual command state
     manual_act_unit_angle_ = initial_act_unit_angle_;
     manual_spine_angle_ = initial_spine_angle_;
-    manual_body_roll_ = initial_act_unit_angle_; // 必要なら 0.0 にしてもよい
     manual_spine_joints_received_ = false;
 
     manual_spine_joints_sub_ =
       nh_.subscribe("manual_spine_joints_ctrl", 1,
                     &GimbalrotorController::manualSpineJointsCallback, this);
-
-    manual_body_roll_sub_ =
-      nh_.subscribe("manual_body_roll_ctrl", 1,
-                    &GimbalrotorController::manualBodyRollCallback, this);
   }
 
   void GimbalrotorController::reset()
@@ -74,7 +69,6 @@ namespace aerial_robot_control
   {
     if(!gimbal_calc_in_fc_ && publish_initial_spine_pose_ && !start_rp_integration_)
       {
-        // ROS_INFO_THROTTLE(1.0, "publishing initial spine pose from update()");
         publishInitialJointPose();
       }
 
@@ -250,7 +244,7 @@ namespace aerial_robot_control
         }
 
       if(integrated_map_inv(i, (underactuate_ ? YAW - 2 : YAW)) > max_yaw_scale)
-        max_yaw_scale = integrated_map_inv(i, (underactuate_ ? YAW - 2 : YAW));  // underactuated: yaw col is shifted
+        max_yaw_scale = integrated_map_inv(i, (underactuate_ ? YAW - 2 : YAW));
 
       last_col += rotor_coef_;
     }
@@ -284,22 +278,16 @@ namespace aerial_robot_control
     }
 
     /*
-      manual body roll command:
-      keyboard node sends desired body-roll only.
-      controller converts it into
-        - body roll target
-        - inverse act-unit angle
+      manual body roll command is no longer handled in this controller.
+      Body attitude target should be sent directly to navigator
+      via final_target_baselink_rot (QuaternionStamped).
+      Here we only keep act_unit / spine command publication.
     */
 
-    // added
     tf::Matrix3x3 fc_rot = estimator_->getOrientation(Frame::BASELINK, estimate_mode_);
     double fc_roll, fc_pitch, fc_yaw;
     fc_rot.getRPY(fc_roll, fc_pitch, fc_yaw);
 
-    target_roll_ = manual_body_roll_;
-    navigator_->setTargetRoll(target_roll_);
-    // changed
-    // manual_act_unit_angle_ = rpy_.x(); 
     manual_act_unit_angle_ = fc_roll;
   }
 
@@ -340,7 +328,6 @@ namespace aerial_robot_control
         const std::string& joint_name = msg->name[i];
         const double joint_pos = msg->position[i];
 
-        // act_unit は manual_body_roll_ から controller 側で決めるので、ここでは受けない
         if(joint_name == "spine_joint_1")
           {
             manual_spine_angle_ = joint_pos;
@@ -350,11 +337,6 @@ namespace aerial_robot_control
 
     if(updated)
       manual_spine_joints_received_ = true;
-  }
-
-  void GimbalrotorController::manualBodyRollCallback(const std_msgs::Float64ConstPtr& msg)
-  {
-    manual_body_roll_ = msg->data;
   }
 
   void GimbalrotorController::publishInitialJointPose()
@@ -387,64 +369,64 @@ namespace aerial_robot_control
   {
     PoseLinearController::sendCmd();
     sendFourAxisCommand();
-    
+
     if(gimbal_calc_in_fc_){
       sendTorqueAllocationMatrixInv();
       setAttitudeGains();
     }
-    
+
     sensor_msgs::JointState gimbal_control_msg;
     gimbal_control_msg.header.stamp = ros::Time::now();
-    
+
     if(!gimbal_calc_in_fc_)
       {
-	for(int i = 0; i < motor_num_; i++){
+        for(int i = 0; i < motor_num_; i++){
           if(gimbal_dof_ == 1)
-	    {
-	      gimbal_control_msg.name.push_back("gimbal" + std::to_string(i + 1));
-	      gimbal_control_msg.position.push_back(target_gimbal_angles_.at(i));
-	    }
-	  else if(gimbal_dof_ == 2)
-	    {
-	      gimbal_control_msg.name.push_back("gimbal" + std::to_string(i + 1) + "_roll");
-	      gimbal_control_msg.position.push_back(target_gimbal_angles_.at(2 * i));
-	      
-	      gimbal_control_msg.name.push_back("gimbal" + std::to_string(i + 1) + "_pitch");
-	      gimbal_control_msg.position.push_back(target_gimbal_angles_.at(2 * i + 1));
-	    }
-	}
+            {
+              gimbal_control_msg.name.push_back("gimbal" + std::to_string(i + 1));
+              gimbal_control_msg.position.push_back(target_gimbal_angles_.at(i));
+            }
+          else if(gimbal_dof_ == 2)
+            {
+              gimbal_control_msg.name.push_back("gimbal" + std::to_string(i + 1) + "_roll");
+              gimbal_control_msg.position.push_back(target_gimbal_angles_.at(2 * i));
+
+              gimbal_control_msg.name.push_back("gimbal" + std::to_string(i + 1) + "_pitch");
+              gimbal_control_msg.position.push_back(target_gimbal_angles_.at(2 * i + 1));
+            }
+        }
       }
 
-  appendSpineAndActUnitJoints(gimbal_control_msg, manual_act_unit_angle_, manual_spine_angle_);
-  gimbal_control_pub_.publish(gimbal_control_msg);
+    appendSpineAndActUnitJoints(gimbal_control_msg, manual_act_unit_angle_, manual_spine_angle_);
+    gimbal_control_pub_.publish(gimbal_control_msg);
 
-  if(!gimbal_calc_in_fc_)
-    {
-      std_msgs::Float32MultiArray target_vectoring_force_msg;
-      target_vectoring_f_ = target_vectoring_f_trans_ + target_vectoring_f_rot_;
-      for(int i = 0; i < target_vectoring_f_.size(); i++){
-        target_vectoring_force_msg.data.push_back(target_vectoring_f_(i));
+    if(!gimbal_calc_in_fc_)
+      {
+        std_msgs::Float32MultiArray target_vectoring_force_msg;
+        target_vectoring_f_ = target_vectoring_f_trans_ + target_vectoring_f_rot_;
+        for(int i = 0; i < target_vectoring_f_.size(); i++){
+          target_vectoring_force_msg.data.push_back(target_vectoring_f_(i));
+        }
+        target_vectoring_force_pub_.publish(target_vectoring_force_msg);
       }
-      target_vectoring_force_pub_.publish(target_vectoring_force_msg);
-    }
-}
+  }
 
   void GimbalrotorController::sendFourAxisCommand()
   {
     spinal::FourAxisCommand flight_command_data;
-
+    
     flight_command_data.angles[0] = target_roll_;
     flight_command_data.angles[1] = target_pitch_;
-
+    
     if(gimbal_calc_in_fc_){
       flight_command_data.base_thrust = target_base_thrust_;
       flight_command_data.angles[2] = candidate_yaw_term_;
     }
     else
       {
-        flight_command_data.base_thrust = target_full_thrust_;
+	flight_command_data.base_thrust = target_full_thrust_;
       }
-
+    
     flight_cmd_pub_.publish(flight_command_data);
   }
 

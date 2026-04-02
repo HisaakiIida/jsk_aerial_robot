@@ -28,7 +28,7 @@
       <child link="${child}"/>
       <origin xyz="${xyz}" rpy="0 0 0"/>
       <axis xyz="0 0 1"/>
-      <limit lower="-0.52" upper="0.52" effort="5.0" velocity="2.0"/>
+      <limit lower="-0.52" upper="0.52" effort="100.0" velocity="2.0"/>
       <dynamics damping="10.0" friction="0.0"/>
       <xacro:if value="${mimic}">
         <mimic joint="spine_joint_1" multiplier="1.0" offset="0.0"/>
@@ -244,7 +244,7 @@
       <child link="act_unit"/>
       <origin rpy="0 0 0" xyz="0.0 0.0 0.0"/>
       <axis xyz="1 0 0"/>
-      <limit lower="-3.13" upper="3.13" effort="5.0" velocity="1.0"/>
+      <limit lower="-3.13" upper="3.13" effort="100.0" velocity="1.0"/>
       <dynamics damping="0.8" friction="0.0"/>
     </joint>
     <xacro:trans_ref_block transmission_name="spine_tran_7" joint_name="act_unit_joint_1" actuator_name="spine_rotator_1"/>
@@ -254,7 +254,7 @@
       <child link="base_link_2"/>
       <origin rpy="0 0 0" xyz="0.195 0.0 -0.014"/>
       <axis xyz="1 0 0"/>
-      <limit lower="-3.13" upper="3.13" effort="5.0" velocity="1.0"/>
+      <limit lower="-3.13" upper="3.13" effort="100.0" velocity="1.0"/>
       <dynamics damping="0.8" friction="0.0"/>
       <mimic joint="spine_joint_1" multiplier="-1.0" offset="0.0"/>
     </joint>

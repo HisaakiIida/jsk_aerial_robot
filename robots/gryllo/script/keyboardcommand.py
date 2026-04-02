@@ -3,10 +3,12 @@ from __future__ import print_function
 import sys, select, termios, tty
 
 import rospy
-from std_msgs.msg import Empty, Float64
+from std_msgs.msg import Empty
 from aerial_robot_msgs.msg import FlightNav
 import rosgraph
 from sensor_msgs.msg import JointState
+from geometry_msgs.msg import QuaternionStamped
+import tf.transformations as tft
 
 guide = """ 
 Instruction:
@@ -23,6 +25,8 @@ h: halt (force stop motor)
      a          s           d            ]         i         p
 (move left) (backward) (move right) (move down) (roll -) (spine -)
 
+c: reset roll/spine
+
 Please don't have caps lock on.
 CTRL+c to quit
 ---------------------------
@@ -35,11 +39,36 @@ def getKey():
     termios.tcsetattr(sys.stdin, termios.TCSADRAIN, settings)
     return key
 
-def printMsg(msg, msg_len=50):
+def printMsg(msg, msg_len=60):
     print(msg.ljust(msg_len) + "\r", end="")
 
 def clamp(x, x_min, x_max):
     return max(x_min, min(x, x_max))
+
+def publish_roll_quaternion(pub, roll_val):
+    q = tft.quaternion_from_euler(roll_val, 0.0, 0.0)
+
+    msg = QuaternionStamped()
+    msg.header.stamp = rospy.Time.now()
+    msg.quaternion.x = q[0]
+    msg.quaternion.y = q[1]
+    msg.quaternion.z = q[2]
+    msg.quaternion.w = q[3]
+    pub.publish(msg)
+
+def publish_spine(pub, spine_val):
+    js = JointState()
+    js.header.stamp = rospy.Time.now()
+    js.name = [
+        "spine_joint_1",
+        "spine_joint_2",
+        "spine_joint_3",
+        "spine_joint_4",
+        "spine_joint_5",
+        "spine_joint_6",
+    ]
+    js.position = [spine_val] * 6
+    pub.publish(js)
 
 if __name__ == "__main__":
     settings = termios.tcgetattr(sys.stdin)
@@ -48,7 +77,7 @@ if __name__ == "__main__":
     robot_ns = rospy.get_param("~robot_ns", "")
 
     print(guide)
-    
+
     if not robot_ns:
         master = rosgraph.Master('/rostopic')
         try:
@@ -70,15 +99,17 @@ if __name__ == "__main__":
     nav_pub = rospy.Publisher(robot_ns + '/uav/nav', FlightNav, queue_size=1)
 
     joint_pub = rospy.Publisher(robot_ns + '/manual_spine_joints_ctrl', JointState, queue_size=1)
-    roll_pub = rospy.Publisher(robot_ns + '/manual_body_roll_ctrl', Float64, queue_size=1)
+
+    quat_pub = rospy.Publisher(robot_ns + '/final_target_baselink_rot',
+                               QuaternionStamped, queue_size=1)
 
     xy_vel = rospy.get_param("~xy_vel", 0.2)
     z_vel = rospy.get_param("~z_vel", 0.2)
     yaw_vel = rospy.get_param("~yaw_vel", 0.2)
 
     roll_step = rospy.get_param("~roll_step", 0.02)
-    roll_min = rospy.get_param("~roll_min", -1.56)
-    roll_max = rospy.get_param("~roll_max", 1.56)
+    roll_min = rospy.get_param("~roll_min", -1.57)
+    roll_max = rospy.get_param("~roll_max", 1.57)
 
     spine_step = rospy.get_param("~spine_step", 0.02)
     spine_min = rospy.get_param("~spine_min", -0.52)
@@ -169,64 +200,31 @@ if __name__ == "__main__":
 
             elif key == 'u':
                 roll_val = clamp(roll_val + roll_step, roll_min, roll_max)
-                roll_pub.publish(Float64(data=roll_val))
-                msg = "target body roll = {:.3f}".format(roll_val)
+                publish_roll_quaternion(quat_pub, roll_val)
+                msg = "send quaternion roll target = {:.3f}".format(roll_val)
 
             elif key == 'i':
                 roll_val = clamp(roll_val - roll_step, roll_min, roll_max)
-                roll_pub.publish(Float64(data=roll_val))
-                msg = "target body roll = {:.3f}".format(roll_val)
+                publish_roll_quaternion(quat_pub, roll_val)
+                msg = "send quaternion roll target = {:.3f}".format(roll_val)
 
             elif key == 'o':
                 spine_val = clamp(spine_val + spine_step, spine_min, spine_max)
-                js = JointState()
-                js.header.stamp = rospy.Time.now()
-                js.name = [
-                    "spine_joint_1",
-                    "spine_joint_2",
-                    "spine_joint_3",
-                    "spine_joint_4",
-                    "spine_joint_5",
-                    "spine_joint_6",
-                ]
-                js.position = [spine_val] * 6
-                joint_pub.publish(js)
+                publish_spine(joint_pub, spine_val)
                 msg = "spine_joint_1-6 = {:.3f}".format(spine_val)
 
             elif key == 'p':
                 spine_val = clamp(spine_val - spine_step, spine_min, spine_max)
-                js = JointState()
-                js.header.stamp = rospy.Time.now()
-                js.name = [
-                    "spine_joint_1",
-                    "spine_joint_2",
-                    "spine_joint_3",
-                    "spine_joint_4",
-                    "spine_joint_5",
-                    "spine_joint_6",
-                ]
-                js.position = [spine_val] * 6
-                joint_pub.publish(js)
+                publish_spine(joint_pub, spine_val)
                 msg = "spine_joint_1-6 = {:.3f}".format(spine_val)
 
             elif key == 'c':
                 roll_val = initial_roll
                 spine_val = initial_spine
-                roll_pub.publish(Float64(data=roll_val))
 
-                js = JointState()
-                js.header.stamp = rospy.Time.now()
-                js.name = [
-                    "spine_joint_1",
-                    "spine_joint_2",
-                    "spine_joint_3",
-                    "spine_joint_4",
-                    "spine_joint_5",
-                    "spine_joint_6",
-                ]
-                js.position = [spine_val] * 6
-                joint_pub.publish(js)
-                msg = "reset roll and spine"
+                publish_roll_quaternion(quat_pub, roll_val)
+                publish_spine(joint_pub, spine_val)
+                msg = "reset roll quaternion and spine"
 
             elif key == '\x03':
                 break

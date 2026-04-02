@@ -43,7 +43,6 @@ namespace aerial_robot_control
 
     /* ROS subscribers */
     ros::Subscriber manual_spine_joints_sub_;
-    ros::Subscriber manual_body_roll_sub_;
 
     /* robot model */
     boost::shared_ptr<GimbalrotorRobotModel> gimbalrotor_robot_model_;
@@ -77,7 +76,6 @@ namespace aerial_robot_control
 
     double manual_act_unit_angle_;
     double manual_spine_angle_;
-    double manual_body_roll_;
     bool manual_spine_joints_received_;
 
     /* internal methods */
@@ -98,6 +96,5 @@ namespace aerial_robot_control
                                      double act_unit_angle,
                                      double spine_angle);
     void manualSpineJointsCallback(const sensor_msgs::JointStateConstPtr& msg);
-    void manualBodyRollCallback(const std_msgs::Float64ConstPtr& msg);
   };
 } // namespace aerial_robot_control
