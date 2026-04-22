@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 from __future__ import print_function
-import sys, select, termios, tty
+import sys
+import select
+import termios
+import tty
 
 import rospy
 from std_msgs.msg import Empty
@@ -9,6 +12,7 @@ import rosgraph
 from sensor_msgs.msg import JointState
 from geometry_msgs.msg import QuaternionStamped
 import tf.transformations as tft
+
 
 guide = """ 
 Instruction:
@@ -25,12 +29,16 @@ h: halt (force stop motor)
      a          s           d            ]         i         k         p
 (move left) (backward) (move right) (move down) (roll -) (pitch -) (spine -)
 
-c: reset roll/pitch/spine
+CTRL+u : act_unit offset +
+CTRL+i : act_unit offset -
+
+c: smooth reset roll/pitch/spine/act_unit_offset
 
 Please don't have caps lock on.
 CTRL+c to quit
 ---------------------------
 """
+
 
 def getKey():
     tty.setraw(sys.stdin.fileno())
@@ -39,11 +47,14 @@ def getKey():
     termios.tcsetattr(sys.stdin, termios.TCSADRAIN, settings)
     return key
 
-def printMsg(msg, msg_len=60):
+
+def printMsg(msg, msg_len=90):
     print(msg.ljust(msg_len) + "\r", end="")
+
 
 def clamp(x, x_min, x_max):
     return max(x_min, min(x, x_max))
+
 
 def publish_attitude_quaternion(pub, roll_val, pitch_val):
     q = tft.quaternion_from_euler(roll_val, pitch_val, 0.0)
@@ -56,10 +67,13 @@ def publish_attitude_quaternion(pub, roll_val, pitch_val):
     msg.quaternion.w = q[3]
     pub.publish(msg)
 
-def publish_spine(pub, spine_val):
+
+def publish_manual_joints(pub, spine_val, act_unit_offset_val):
     js = JointState()
     js.header.stamp = rospy.Time.now()
     js.name = [
+        "act_unit_joint_1",
+        "act_unit_joint_2",
         "spine_joint_1",
         "spine_joint_2",
         "spine_joint_3",
@@ -67,8 +81,46 @@ def publish_spine(pub, spine_val):
         "spine_joint_5",
         "spine_joint_6",
     ]
-    js.position = [spine_val] * 6
+    # ここで送る act_unit_joint_* は「最終角」ではなく手動オフセット
+    js.position = [
+        act_unit_offset_val,
+        -act_unit_offset_val,
+        spine_val,
+        spine_val,
+        spine_val,
+        spine_val,
+        spine_val,
+        spine_val,
+    ]
     pub.publish(js)
+
+
+def smooth_reset(quat_pub, joint_pub,
+                 cur_roll, cur_pitch, cur_spine, cur_act_unit_offset,
+                 tgt_roll, tgt_pitch, tgt_spine, tgt_act_unit_offset,
+                 duration=2.5, rate_hz=50):
+    steps = max(1, int(duration * rate_hz))
+    rate = rospy.Rate(rate_hz)
+
+    start_roll = cur_roll
+    start_pitch = cur_pitch
+    start_spine = cur_spine
+    start_act_unit_offset = cur_act_unit_offset
+
+    for i in range(1, steps + 1):
+        a = float(i) / float(steps)
+
+        roll_val = start_roll + (tgt_roll - start_roll) * a
+        pitch_val = start_pitch + (tgt_pitch - start_pitch) * a
+        spine_val = start_spine + (tgt_spine - start_spine) * a
+        act_unit_offset_val = start_act_unit_offset + (tgt_act_unit_offset - start_act_unit_offset) * a
+
+        publish_attitude_quaternion(quat_pub, roll_val, pitch_val)
+        publish_manual_joints(joint_pub, spine_val, act_unit_offset_val)
+        rate.sleep()
+
+    return tgt_roll, tgt_pitch, tgt_spine, tgt_act_unit_offset
+
 
 if __name__ == "__main__":
     settings = termios.tcgetattr(sys.stdin)
@@ -98,7 +150,8 @@ if __name__ == "__main__":
     force_landing_pub = rospy.Publisher(ns + '/force_landing', Empty, queue_size=1)
     nav_pub = rospy.Publisher(robot_ns + '/uav/nav', FlightNav, queue_size=1)
 
-    joint_pub = rospy.Publisher(robot_ns + '/manual_spine_joints_ctrl', JointState, queue_size=1)
+    joint_pub = rospy.Publisher(robot_ns + '/manual_spine_joints_ctrl',
+                                JointState, queue_size=1)
 
     quat_pub = rospy.Publisher(robot_ns + '/final_target_baselink_rot',
                                QuaternionStamped, queue_size=1)
@@ -119,13 +172,23 @@ if __name__ == "__main__":
     spine_min = rospy.get_param("~spine_min", -0.52)
     spine_max = rospy.get_param("~spine_max", 0.52)
 
+    act_unit_step = rospy.get_param("~act_unit_step", 0.02)
+    act_unit_min = rospy.get_param("~act_unit_min", -1.57)
+    act_unit_max = rospy.get_param("~act_unit_max", 1.57)
+
     initial_roll = rospy.get_param("~initial_roll", 0.0)
     initial_pitch = rospy.get_param("~initial_pitch", 0.0)
     initial_spine = rospy.get_param("~initial_spine", 0.0)
+    initial_act_unit_offset = rospy.get_param("~initial_act_unit_offset", 0.0)
 
     roll_val = initial_roll
     pitch_val = initial_pitch
     spine_val = initial_spine
+    act_unit_offset_val = initial_act_unit_offset
+
+    rospy.sleep(0.2)
+    publish_attitude_quaternion(quat_pub, roll_val, pitch_val)
+    publish_manual_joints(joint_pub, spine_val, act_unit_offset_val)
 
     try:
         while not rospy.is_shutdown():
@@ -204,44 +267,62 @@ if __name__ == "__main__":
                 nav_pub.publish(nav_msg)
                 msg = "send -z vel command"
 
+            # body roll only
+            # act_unit compensation is handled in C++ from fc_roll
             elif key == 'u':
                 roll_val = clamp(roll_val + roll_step, roll_min, roll_max)
                 publish_attitude_quaternion(quat_pub, roll_val, pitch_val)
-                msg = "send quaternion target roll={:.3f}, pitch={:.3f}".format(roll_val, pitch_val)
+                msg = "body roll={:.3f}, pitch={:.3f}, act_unit_offset={:.3f}".format(
+                    roll_val, pitch_val, act_unit_offset_val)
 
             elif key == 'i':
                 roll_val = clamp(roll_val - roll_step, roll_min, roll_max)
                 publish_attitude_quaternion(quat_pub, roll_val, pitch_val)
-                msg = "send quaternion target roll={:.3f}, pitch={:.3f}".format(roll_val, pitch_val)
+                msg = "body roll={:.3f}, pitch={:.3f}, act_unit_offset={:.3f}".format(
+                    roll_val, pitch_val, act_unit_offset_val)
 
             elif key == 'j':
                 pitch_val = clamp(pitch_val + pitch_step, pitch_min, pitch_max)
                 publish_attitude_quaternion(quat_pub, roll_val, pitch_val)
-                msg = "send quaternion target roll={:.3f}, pitch={:.3f}".format(roll_val, pitch_val)
+                msg = "body roll={:.3f}, pitch={:.3f}".format(roll_val, pitch_val)
 
             elif key == 'k':
                 pitch_val = clamp(pitch_val - pitch_step, pitch_min, pitch_max)
                 publish_attitude_quaternion(quat_pub, roll_val, pitch_val)
-                msg = "send quaternion target roll={:.3f}, pitch={:.3f}".format(roll_val, pitch_val)
+                msg = "body roll={:.3f}, pitch={:.3f}".format(roll_val, pitch_val)
 
             elif key == 'o':
                 spine_val = clamp(spine_val + spine_step, spine_min, spine_max)
-                publish_spine(joint_pub, spine_val)
-                msg = "spine_joint_1-6 = {:.3f}".format(spine_val)
+                publish_manual_joints(joint_pub, spine_val, act_unit_offset_val)
+                msg = "spine={:.3f}, act_unit_offset={:.3f}".format(
+                    spine_val, act_unit_offset_val)
 
             elif key == 'p':
                 spine_val = clamp(spine_val - spine_step, spine_min, spine_max)
-                publish_spine(joint_pub, spine_val)
-                msg = "spine_joint_1-6 = {:.3f}".format(spine_val)
+                publish_manual_joints(joint_pub, spine_val, act_unit_offset_val)
+                msg = "spine={:.3f}, act_unit_offset={:.3f}".format(
+                    spine_val, act_unit_offset_val)
+
+            elif key == '\x15':   # Ctrl+u
+                act_unit_offset_val = clamp(act_unit_offset_val + act_unit_step,
+                                            act_unit_min, act_unit_max)
+                publish_manual_joints(joint_pub, spine_val, act_unit_offset_val)
+                msg = "act_unit offset + : {:.3f}".format(act_unit_offset_val)
+
+            elif key == '\t':     # Ctrl+i == TAB
+                act_unit_offset_val = clamp(act_unit_offset_val - act_unit_step,
+                                            act_unit_min, act_unit_max)
+                publish_manual_joints(joint_pub, spine_val, act_unit_offset_val)
+                msg = "act_unit offset - : {:.3f}".format(act_unit_offset_val)
 
             elif key == 'c':
-                roll_val = initial_roll
-                pitch_val = initial_pitch
-                spine_val = initial_spine
-
-                publish_attitude_quaternion(quat_pub, roll_val, pitch_val)
-                publish_spine(joint_pub, spine_val)
-                msg = "reset roll, pitch and spine"
+                roll_val, pitch_val, spine_val, act_unit_offset_val = smooth_reset(
+                    quat_pub, joint_pub,
+                    roll_val, pitch_val, spine_val, act_unit_offset_val,
+                    initial_roll, initial_pitch, initial_spine, initial_act_unit_offset,
+                    duration=2.5, rate_hz=50
+                )
+                msg = "smooth reset roll, pitch, spine and act_unit_offset"
 
             elif key == '\x03':
                 break

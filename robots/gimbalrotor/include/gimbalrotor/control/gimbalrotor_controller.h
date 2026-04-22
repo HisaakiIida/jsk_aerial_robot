@@ -77,6 +77,8 @@ namespace aerial_robot_control
     double manual_act_unit_angle_;
     double manual_spine_angle_;
     bool manual_spine_joints_received_;
+    double manual_act_unit_offset_;
+    double act_unit_comp_gain_;
 
     /* internal methods */
     void rosParamInit();

@@ -36,6 +36,7 @@ namespace aerial_robot_control
     gimbal_dof_pub_ = nh_.advertise<std_msgs::UInt8>("gimbal_dof", 1);
 
     // spine / act-unit manual command state
+    manual_act_unit_offset_ = 0.0;
     manual_act_unit_angle_ = initial_act_unit_angle_;
     manual_spine_angle_ = initial_spine_angle_;
     manual_spine_joints_received_ = false;
@@ -48,7 +49,6 @@ namespace aerial_robot_control
   void GimbalrotorController::reset()
   {
     PoseLinearController::reset();
-
     setAttitudeGains();
   }
 
@@ -63,6 +63,8 @@ namespace aerial_robot_control
     getParam<bool>(control_nh, "publish_initial_spine_pose", publish_initial_spine_pose_, false);
     getParam<double>(control_nh, "initial_spine_angle", initial_spine_angle_, 0.0);
     getParam<double>(control_nh, "initial_act_unit_angle", initial_act_unit_angle_, 0.0);
+
+    getParam<double>(control_nh, "act_unit_comp_gain", act_unit_comp_gain_, 1.0);
   }
 
   bool GimbalrotorController::update()
@@ -278,17 +280,22 @@ namespace aerial_robot_control
     }
 
     /*
-      manual body roll command is no longer handled in this controller.
-      Body attitude target should be sent directly to navigator
-      via final_target_baselink_rot (QuaternionStamped).
-      Here we only keep act_unit / spine command publication.
+      body roll target is handled outside this controller via
+      final_target_baselink_rot (QuaternionStamped).
+
+      act_unit is composed of:
+        automatic compensation from current fc_roll
+        + manual offset from keyboard Ctrl+u / Ctrl+i
     */
 
     tf::Matrix3x3 fc_rot = estimator_->getOrientation(Frame::BASELINK, estimate_mode_);
     double fc_roll, fc_pitch, fc_yaw;
     fc_rot.getRPY(fc_roll, fc_pitch, fc_yaw);
 
-    manual_act_unit_angle_ = fc_roll;
+    // deadband
+    if(std::abs(fc_roll) < 0.02) fc_roll = 0.0;
+
+    manual_act_unit_angle_ = act_unit_comp_gain_ * fc_roll + manual_act_unit_offset_;
   }
 
   void GimbalrotorController::appendSpineAndActUnitJoints(sensor_msgs::JointState& msg,
@@ -328,7 +335,12 @@ namespace aerial_robot_control
         const std::string& joint_name = msg->name[i];
         const double joint_pos = msg->position[i];
 
-        if(joint_name == "spine_joint_1")
+        if(joint_name == "act_unit_joint_1")
+          {
+            manual_act_unit_offset_ = joint_pos;
+            updated = true;
+          }
+        else if(joint_name == "spine_joint_1")
           {
             manual_spine_angle_ = joint_pos;
             updated = true;
@@ -361,7 +373,6 @@ namespace aerial_robot_control
     }
 
     appendSpineAndActUnitJoints(gimbal_control_msg, initial_act_unit_angle_, initial_spine_angle_);
-
     gimbal_control_pub_.publish(gimbal_control_msg);
   }
 
@@ -414,19 +425,19 @@ namespace aerial_robot_control
   void GimbalrotorController::sendFourAxisCommand()
   {
     spinal::FourAxisCommand flight_command_data;
-    
+
     flight_command_data.angles[0] = target_roll_;
     flight_command_data.angles[1] = target_pitch_;
-    
+
     if(gimbal_calc_in_fc_){
       flight_command_data.base_thrust = target_base_thrust_;
       flight_command_data.angles[2] = candidate_yaw_term_;
     }
     else
       {
-	flight_command_data.base_thrust = target_full_thrust_;
+        flight_command_data.base_thrust = target_full_thrust_;
       }
-    
+
     flight_cmd_pub_.publish(flight_command_data);
   }
 
