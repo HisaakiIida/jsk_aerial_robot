@@ -98,7 +98,7 @@ def publish_manual_joints(pub, spine_val, act_unit_offset_val):
 def smooth_reset(quat_pub, joint_pub,
                  cur_roll, cur_pitch, cur_spine, cur_act_unit_offset,
                  tgt_roll, tgt_pitch, tgt_spine, tgt_act_unit_offset,
-                 duration=2.5, rate_hz=50):
+                 duration=10.0, rate_hz=50):
     steps = max(1, int(duration * rate_hz))
     rate = rospy.Rate(rate_hz)
 
