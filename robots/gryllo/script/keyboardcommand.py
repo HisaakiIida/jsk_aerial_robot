@@ -41,10 +41,10 @@ CTRL+c to quit
 
 
 def getKey():
-    tty.setraw(sys.stdin.fileno())
-    select.select([sys.stdin], [], [], 0)
-    key = sys.stdin.read(1)
-    termios.tcsetattr(sys.stdin, termios.TCSADRAIN, settings)
+    if select.select([sys.stdin], [], [], 0)[0]:
+        key = sys.stdin.read(1)
+    else:
+        key = ''
     return key
 
 def printMsg(msg, msg_len=90):
@@ -54,6 +54,12 @@ def printMsg(msg, msg_len=90):
 def clamp(x, x_min, x_max):
     return max(x_min, min(x, x_max))
 
+def approach(current, target, max_step):
+    if current < target:
+        return min(current + max_step, target)
+    elif current > target:
+        return max(current - max_step, target)
+    return current
 
 def publish_attitude_quaternion(pub, roll_val, pitch_val):
     q = tft.quaternion_from_euler(roll_val, pitch_val, 0.0)
@@ -93,11 +99,23 @@ def publish_manual_joints(pub, spine_val, act_unit_offset_val):
     ]
     pub.publish(js)
 
+def publish_spine_smooth(joint_pub, start_spine, target_spine,
+                act_unit_offset_val, duration=0.5, rate_hz=50):
+    steps = max(1, int(duration * rate_hz))
+    rate = rospy.Rate(rate_hz)
+
+    for i in range(1, steps + 1):
+        a = float(i) / float(steps)
+        spine_val = start_spine + (target_spine - start_spine) * a
+        publish_manual_joints(joint_pub, spine_val, act_unit_offset_val)
+        rate.sleep()
+
+    return target_spine
 
 def smooth_reset(quat_pub, joint_pub,
-                 cur_roll, cur_pitch, cur_spine, cur_act_unit_offset,
-                 tgt_roll, tgt_pitch, tgt_spine, tgt_act_unit_offset,
-                 duration=10.0, rate_hz=50):
+                cur_roll, cur_pitch, cur_spine, cur_act_unit_offset,
+                tgt_roll, tgt_pitch, tgt_spine, tgt_act_unit_offset,
+                duration=10.0, rate_hz=50):
     steps = max(1, int(duration * rate_hz))
     rate = rospy.Rate(rate_hz)
 
@@ -128,6 +146,7 @@ if __name__ == "__main__":
     robot_ns = rospy.get_param("~robot_ns", "")
 
     print(guide)
+    tty.setraw(sys.stdin.fileno())
 
     if not robot_ns:
         master = rosgraph.Master('/rostopic')
@@ -153,7 +172,7 @@ if __name__ == "__main__":
                                 JointState, queue_size=1)
 
     quat_pub = rospy.Publisher(robot_ns + '/final_target_baselink_rot',
-                               QuaternionStamped, queue_size=1)
+                                QuaternionStamped, queue_size=1)
 
     xy_vel = rospy.get_param("~xy_vel", 0.2)
     z_vel = rospy.get_param("~z_vel", 0.2)
@@ -171,6 +190,9 @@ if __name__ == "__main__":
     spine_min = rospy.get_param("~spine_min", -0.52)
     spine_max = rospy.get_param("~spine_max", 0.52)
 
+    spine_publish_rate = rospy.get_param("~spine_publish_rate", 50.0)
+    spine_slew_rate = rospy.get_param("~spine_slew_rate", 0.01)
+    
     act_unit_step = rospy.get_param("~act_unit_step", 0.02)
     act_unit_min = rospy.get_param("~act_unit_min", -1.57)
     act_unit_max = rospy.get_param("~act_unit_max", 1.57)
@@ -183,12 +205,14 @@ if __name__ == "__main__":
     roll_val = initial_roll
     pitch_val = initial_pitch
     spine_val = initial_spine
+    target_spine_val = initial_spine
     act_unit_offset_val = initial_act_unit_offset
 
     rospy.sleep(0.2)
     publish_attitude_quaternion(quat_pub, roll_val, pitch_val)
     publish_manual_joints(joint_pub, spine_val, act_unit_offset_val)
 
+    rate = rospy.Rate(spine_publish_rate)
     last_printed_msg = None
     
     try:
@@ -293,17 +317,15 @@ if __name__ == "__main__":
                 msg = "body roll={:.3f}, pitch={:.3f}".format(roll_val, pitch_val)
 
             elif key == 'o':
-                spine_val = clamp(spine_val + spine_step, spine_min, spine_max)
-                publish_manual_joints(joint_pub, spine_val, act_unit_offset_val)
-                msg = "spine={:.3f}, act_unit_offset={:.3f}".format(
-                    spine_val, act_unit_offset_val)
-
+                target_spine_val = clamp(target_spine_val + spine_step, spine_min, spine_max)
+                msg = "target_spine={:.3f}, spine={:.3f}, act_unit_offset={:.3f}".format(
+                    target_spine_val, spine_val, act_unit_offset_val)
+                
             elif key == 'p':
-                spine_val = clamp(spine_val - spine_step, spine_min, spine_max)
-                publish_manual_joints(joint_pub, spine_val, act_unit_offset_val)
-                msg = "spine={:.3f}, act_unit_offset={:.3f}".format(
-                    spine_val, act_unit_offset_val)
-
+                target_spine_val = clamp(target_spine_val - spine_step, spine_min, spine_max)
+                msg = "target_spine={:.3f}, spine={:.3f}, act_unit_offset={:.3f}".format(
+                    target_spine_val, spine_val, act_unit_offset_val)
+                
             elif key == '\x15':   # Ctrl+u
                 act_unit_offset_val = clamp(act_unit_offset_val + act_unit_step,
                                             act_unit_min, act_unit_max)
@@ -323,21 +345,26 @@ if __name__ == "__main__":
                     initial_roll, initial_pitch, initial_spine, initial_act_unit_offset,
                     duration=2.5, rate_hz=50
                 )
+                target_spine_val = spine_val
                 msg = "smooth reset roll, pitch, spine and act_unit_offset"
 
             elif key == '\x03':
                 break
 
-            else:
+            elif key:
                 printMsg("")
-                rospy.sleep(0.001)
-                continue
 
-            if msg != last_printed_msg:
+            max_spine_step_per_loop = spine_slew_rate / spine_publish_rate
+            new_spine_val = approach(spine_val, target_spine_val, max_spine_step_per_loop)
+            
+            if new_spine_val != spine_val:
+                spine_val = new_spine_val
+                publish_manual_joints(joint_pub, spine_val, act_unit_offset_val)
+            
+            if msg and msg != last_printed_msg:
                 printMsg(msg)
                 last_printed_msg = msg
-
-            rospy.sleep(0.001)
+            rate.sleep()
 
     except Exception as e:
         print(repr(e))
