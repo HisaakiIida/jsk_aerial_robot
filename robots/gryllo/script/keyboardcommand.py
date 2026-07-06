@@ -343,7 +343,7 @@ if __name__ == "__main__":
                     quat_pub, joint_pub,
                     roll_val, pitch_val, spine_val, act_unit_offset_val,
                     initial_roll, initial_pitch, initial_spine, initial_act_unit_offset,
-                    duration=2.5, rate_hz=50
+                    duration=5.0, rate_hz=50
                 )
                 target_spine_val = spine_val
                 msg = "smooth reset roll, pitch, spine and act_unit_offset"
