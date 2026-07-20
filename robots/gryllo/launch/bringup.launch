@@ -96,7 +96,17 @@
   </include >
 
   ###########  Servo Bridge  ###########
-  <node pkg="aerial_robot_model" type="servo_bridge_node" name="servo_bridge" ns="$(arg robot_ns)" output="screen" />
+  <!-- Keep the existing direct controller path in simulation. -->
+  <node pkg="aerial_robot_model" type="servo_bridge_node" name="servo_bridge" ns="$(arg robot_ns)" output="screen" if="$(arg simulation)" />
+
+  <!-- On the real machine, separate physical servo commands from virtual spine joints. -->
+  <node pkg="aerial_robot_model" type="servo_bridge_node" name="servo_bridge" ns="$(arg robot_ns)" output="screen" unless="$(arg simulation)">
+    <remap from="gimbals_ctrl" to="physical_gimbals_ctrl" />
+    <remap from="joint_states" to="servo_joint_states" />
+  </node>
+  <node pkg="gryllo" type="gryllo_real_spine_bridge.py" name="gryllo_real_spine_bridge" ns="$(arg robot_ns)" output="screen" unless="$(arg simulation)">
+    <param name="model_json" value="$(find gryllo)/script/spine_servo_model.json" />
+  </node>
 
   ########## Simulation in Gazebo #########
   <include file="$(find aerial_robot_simulation)/launch/gazebo.launch" if = "$(eval arg('simulation') and not arg('real_machine'))" >

@@ -19,6 +19,21 @@ Before making any file change, you must first provide:
 
 Wait for my explicit approval before applying changes.
 
+## Pre-edit preview policy
+
+Before editing any file, you must show the planned edit locations.
+
+For each planned edit, provide:
+
+- File path
+- Function, class, node, launch tag, YAML key, or xacro macro to be changed
+- Approximate line number if available
+- Purpose of the change
+- Risk of the change
+- A `code -g path:line` command for quickly opening the location in VS Code
+
+Do not modify files until I explicitly approve the plan.
+
 ## ROS-specific constraints
 
 Do not change topic names, message types, frame names, tf_prefix, namespace conventions, launch arguments, URDF/xacro structure, or controller semantics unless I explicitly ask for that change.
